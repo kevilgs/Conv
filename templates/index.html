@@ -1,0 +1,22 @@
+<!-- filepath: templates/index.html -->
+{% extends "base.html" %}
+
+{% block title %}Home - Report Generator{% endblock %}
+
+{% block content %}
+<div class="welcome-content">
+    <h2>Welcome to Report Generator</h2>
+    <p>Transform your CSV data into professional reports with ease</p>
+    <a href="{{ url_for('upload.upload') }}" class="btn btn-primary">Upload CSV File</a>
+</div>
+
+<div class="instructions">
+    <h3>How it works:</h3>
+    <ul>
+        <li>Upload your CSV file using the button above</li>
+        <li>The system will extract specific columns and process the data</li>
+        <li>Station codes will be automatically converted based on zone rules</li>
+        <li>Download the processed Excel file with organized data</li>
+    </ul>
+</div>
+{% endblock %}

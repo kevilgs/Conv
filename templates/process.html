@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Processing - Report Generator{% endblock %}
+
+{% block content %}
+<div class="process-content">
+    <h2>Processing Your File</h2>
+    <div class="loading"></div>
+    <p>Please wait while we process your CSV file...</p>
+    
+    {% if filename %}
+    <div class="filename">
+        Processing: {{ filename }}
+    </div>
+    {% endif %}
+    
+    <p>This may take a few moments depending on file size.</p>
+</div>
+{% endblock %}

@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Classifications - Report Generator{% endblock %}
+
+{% block content %}
+<h2>Manage Wagon Classifications</h2>
+<p>Your CSV file has been uploaded successfully. You can now add new wagon classifications if needed.</p>
+
+<div class="classification-section">
+    <div class="current-classifications">
+        <h3>Current Classifications</h3>
+        <div class="classification-list" id="classificationList">
+            <!-- Will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <div class="add-classification">
+        <h3>Add New Classification</h3>
+        <form id="addClassificationForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="wagonType">Wagon Type:</label>
+                    <input type="text" id="wagonType" name="wagon_type" placeholder="e.g., BCNHL" required class="tall-input">
+                </div>
+                <div class="form-group">
+                    <label for="category">Category:</label>
+                    <input type="text" id="category" name="category" placeholder="e.g., JUMBO" required class="tall-input">
+                </div>
+                <button type="submit" class="btn btn-secondary">Add Classification</button>
+            </div>
+        </form>
+        
+        <div class="example-box">
+            <h4>Example:</h4>
+            <p><strong>Wagon Type:</strong> BCNHL → <strong>Category:</strong> JUMBO</p>
+            <p><strong>Wagon Type:</strong> BOXN → <strong>Category:</strong> BOX</p>
+            <p><strong>Wagon Type:</strong> SHRA → <strong>Category:</strong> SHRA</p>
+            <div class="note">
+                <strong>Note:</strong> New classifications will be permanently saved to the CSV file.
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="action-buttons">
+    <form method="POST" action="{{ url_for('process.process_file', filename=filename) }}">
+        <input type="hidden" name="custom_classifications" id="customClassifications" value="">
+        <button type="submit" class="btn btn-primary">
+            <i class="icon-process"></i>
+            Process CSV File
+        </button>
+    </form>
+    
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">
+        <i class="icon-back"></i>
+        Upload Different File
+    </a>
+</div>
+
+<script>
+let customClassifications = {};
+
+// Load existing classifications (sample for display)
+const existingClassifications = {
+    "BCN": "JUMBO",
+    "BCNHL": "JUMBO",
+    "BOXN": "BOX",
+    "SHRA": "SHRA",
+    "BFK": "CONT",
+    "BTPN": "BTPN"
+    // Add more as needed for display
+};
+
+function updateClassificationList() {
+    const listElement = document.getElementById('classificationList');
+    const allClassifications = {...existingClassifications, ...customClassifications};
+    
+    listElement.innerHTML = '';
+    
+    Object.entries(allClassifications).forEach(([wagon, category]) => {
+        const item = document.createElement('div');
+        item.className = 'classification-item';
+        
+        const isCustom = customClassifications[wagon];
+        item.innerHTML = `
+            <span class="wagon-type">${wagon}</span>
+            <span class="arrow">→</span>
+            <span class="category">${category}</span>
+            ${isCustom ? `<button class="btn-remove" onclick="removeClassification('${wagon}')">×</button>` : ''}
+        `;
+        
+        if (isCustom) {
+            item.classList.add('custom-classification');
+        }
+        
+        listElement.appendChild(item);
+    });
+}
+
+function removeClassification(wagonType) {
+    delete customClassifications[wagonType];
+    updateClassificationList();
+    updateHiddenInput();
+}
+
+function updateHiddenInput() {
+    document.getElementById('customClassifications').value = JSON.stringify(customClassifications);
+}
+
+document.getElementById('addClassificationForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const wagonType = document.getElementById('wagonType').value.trim().toUpperCase();
+    const category = document.getElementById('category').value.trim().toUpperCase();
+    
+    if (wagonType && category) {
+        customClassifications[wagonType] = category;
+        updateClassificationList();
+        updateHiddenInput();
+        
+        // Clear form
+        document.getElementById('wagonType').value = '';
+        document.getElementById('category').value = '';
+        
+        // Show success message
+        showMessage('Classification added successfully! It will be saved to CSV when you process the file.', 'success');
+    }
+});
+
+function showMessage(text, type) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${type}`;
+    messageDiv.textContent = text;
+    
+    const container = document.querySelector('.container');
+    container.insertBefore(messageDiv, container.firstChild);
+    
+    setTimeout(() => {
+        messageDiv.remove();
+    }, 3000);
+}
+
+// Initialize
+updateClassificationList();
+</script>
+{% endblock %}

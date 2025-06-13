@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Upload CSV - Report Generator{% endblock %}
+
+{% block content %}
+<h2>Upload CSV File</h2>
+
+<form method="POST" enctype="multipart/form-data" class="upload-form">
+    <div class="form-group">
+        <label for="file">Choose CSV file:</label>
+        <input type="file" name="file" id="file" accept=".csv" required>
+    </div>
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary">
+            <span class="loading" style="display: none;"></span>
+            Upload & Process File
+        </button>
+    </div>
+</form>
+
+<div class="instructions">
+    <h3>File Requirements:</h3>
+    <ul>
+        <li>Only CSV files are allowed</li>
+        <li>Maximum file size: 16MB</li>
+        <li>Make sure your CSV has proper headers in row 3</li>
+        <li>Required columns: ZONE TO, IC STTN, TAKEN OVER sections, HANDED OVER sections</li>
+    </ul>
+</div>
+
+<script>
+document.querySelector('form').addEventListener('submit', function() {
+    const loading = document.querySelector('.loading');
+    const button = document.querySelector('button[type="submit"]');
+    loading.style.display = 'inline-block';
+    button.disabled = true;
+    button.innerHTML = '<span class="loading"></span> Processing...';
+});
+</script>
+{% endblock %}
