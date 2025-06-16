@@ -25,18 +25,18 @@ def get_writable_path(relative_path):
 
 class Config:
     # Flask settings
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'your-production-secret-key-kevilgs-2025'
-    DEBUG = False  # Production mode for speed
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'your-production-secret-key-render'
+    DEBUG = False
     
-    # File upload settings
-    UPLOAD_FOLDER = '/home/kevilgs/mysite/uploads'
-    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max
+    # File upload settings - use /tmp for Render
+    UPLOAD_FOLDER = '/tmp/uploads'
+    MAX_CONTENT_LENGTH = 16 * 1024 * 1024
     ALLOWED_EXTENSIONS = {'csv'}
     
-    # Output settings
-    INTERMEDIATE_FOLDER = '/home/kevilgs/mysite/intermediate'
-    REPORTS_FOLDER = '/home/kevilgs/mysite/reports' 
-    DATA_FOLDER = '/home/kevilgs/mysite/data'
+    # Output settings - use /tmp for Render (ephemeral storage)
+    INTERMEDIATE_FOLDER = '/tmp/intermediate'
+    REPORTS_FOLDER = '/tmp/reports' 
+    DATA_FOLDER = '/tmp/data'
     
     # Data files
     PH_STATIONS_FILE = os.path.join(DATA_FOLDER, 'ph_stations.csv')
