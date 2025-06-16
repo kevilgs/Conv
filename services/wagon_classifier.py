@@ -5,7 +5,7 @@ from config import Config
 class WagonClassifier:
     def __init__(self):
         self.classification_map = {}
-        self.csv_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'wagon_classifications.csv')
+        self.csv_path = Config.WAGON_CLASSIFICATIONS_FILE
         self._load_classification_data()
     
     def _load_classification_data(self):

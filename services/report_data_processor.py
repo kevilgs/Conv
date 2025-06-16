@@ -1,5 +1,6 @@
 import pandas as pd
 from collections import defaultdict, Counter
+from config import Config
 
 class ReportDataProcessor:
     def __init__(self):
@@ -67,9 +68,9 @@ class ReportDataProcessor:
             'CONT_COUNT': 0
         }
         
-        # Debug: Print what classifications we have
-        print(f"Handedover classifications available: {station_data['HANDEDOVER CLASSIFICATION'].unique()}")
-        print(f"Handedover L/E values: {station_data['HANDED OVER L/E'].unique()}")
+        # # Debug: Print what classifications we have
+        # print(f"Handedover classifications available: {station_data['HANDEDOVER CLASSIFICATION'].unique()}")
+        # print(f"Handedover L/E values: {station_data['HANDED OVER L/E'].unique()}")
         
         for classification in self.detail_classifications:
             # Filter by classification and L/E = "L"
@@ -86,12 +87,12 @@ class ReportDataProcessor:
                     (station_data['HANDED OVER L/E'] == 'L')
                 ]
             
-            print(f"For {classification}: found {len(filtered_data)} rows")
+            # print(f"For {classification}: found {len(filtered_data)} rows")
             
             if not filtered_data.empty:
                 # Collect HANDED OVER STTN TO values
                 sttn_to_values = filtered_data['HANDED OVER STTN TO'].tolist()
-                print(f"Stations for {classification}: {sttn_to_values}")
+                # print(f"Stations for {classification}: {sttn_to_values}")
                 
                 # Count occurrences of each station
                 sttn_counts = Counter(sttn_to_values)
@@ -182,9 +183,9 @@ class ReportDataProcessor:
             'CONT_COUNT': 0
         }
         
-        # Debug: Print what classifications we have
-        print(f"Takenover classifications available: {station_data['TAKENOVER CLASSIFICATION'].unique()}")
-        print(f"Takenover L/E values: {station_data['TAKEN OVER L/E'].unique()}")
+        # # Debug: Print what classifications we have
+        # print(f"Takenover classifications available: {station_data['TAKENOVER CLASSIFICATION'].unique()}")
+        # print(f"Takenover L/E values: {station_data['TAKEN OVER L/E'].unique()}")
         
         for classification in self.detail_classifications:
             # Filter by classification and L/E = "L"
@@ -193,12 +194,12 @@ class ReportDataProcessor:
                 (station_data['TAKEN OVER L/E'] == 'L')
             ]
             
-            print(f"For {classification}: found {len(filtered_data)} rows")
+            # print(f"For {classification}: found {len(filtered_data)} rows")
             
             if not filtered_data.empty:
                 # Collect TAKEN OVER STTN TO values
                 sttn_to_values = filtered_data['TAKEN OVER STTN TO'].tolist()
-                print(f"Stations for {classification}: {sttn_to_values}")
+                # print(f"Stations for {classification}: {sttn_to_values}")
                 
                 # Count occurrences of each station
                 sttn_counts = Counter(sttn_to_values)
@@ -433,7 +434,7 @@ class ReportDataProcessor:
     def _load_ph_stations(self):
         """Load PH stations from CSV file"""
         import os
-        config_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'ph_stations.csv')
+        config_path = Config.PH_STATIONS_FILE 
         
         if not os.path.exists(config_path):
             # Create default if doesn't exist
@@ -444,7 +445,7 @@ class ReportDataProcessor:
                 f.write('STATION_CODE\n')
                 for station in default_stations:
                     f.write(f'{station}\n')
-            print(f"Created default PH stations file: {config_path}")
+            # print(f"Created default PH stations file: {config_path}")
         
         ph_df = pd.read_csv(config_path)
         return set(ph_df['STATION_CODE'].str.strip().str.upper())
@@ -457,11 +458,11 @@ class ReportDataProcessor:
         
         # Get PH stations set
         ph_stations = self._load_ph_stations()
-        print(f"Loaded PH stations: {ph_stations}")
+        # print(f"Loaded PH stations: {ph_stations}")
         
         # Get data for BOXN classification
         boxn_data = station_data[station_data[class_col] == 'BOX']  # Use BOX from intermediate
-        print(f"BOXN data found: {len(boxn_data)} rows")
+        # print(f"BOXN data found: {len(boxn_data)} rows")
         
         if boxn_data.empty:
             return "0+0"
@@ -477,5 +478,5 @@ class ReportDataProcessor:
         other_stations = boxn_data[~boxn_data[sttn_col].isin(ph_stations)]
         oth_count = len(other_stations[other_stations[le_col].isin(['L', 'E'])])
         
-        print(f"PH count: {ph_count}, OTH count: {oth_count}")
+        # print(f"PH count: {ph_count}, OTH count: {oth_count}")
         return f"{ph_count}+{oth_count}"

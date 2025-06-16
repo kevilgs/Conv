@@ -150,6 +150,18 @@ class FinalReportGenerator:
             # Move to next station group
             current_row += max_details_length
 
+            if i < len(handedover_stations) and handedover_stations[i] == "SAUN":
+                saun_index = handedover_stations.index("SAUN") + 1
+                handed_stations_upto_saun = handedover_stations[:saun_index]
+                taken_stations_upto_saun = takenover_stations[:min(saun_index, len(takenover_stations))]
+    
+                processor = ReportDataProcessor()
+                totals_handed = processor.calculate_totals(handedover_data, handed_stations_upto_saun, is_handedover=True)
+                totals_taken = processor.calculate_totals(takenover_data, taken_stations_upto_saun, is_handedover=False)
+    
+                self._add_total_row(ws, current_row, totals_handed, totals_taken, "SUBTOTAL")
+                current_row += 1
+
         # Return the last row used
         return current_row - 1  # Return last data row
     

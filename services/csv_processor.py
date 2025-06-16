@@ -22,7 +22,7 @@ class CSVProcessor:
         }
         
         # Zones that convert SAU to SAUS
-        self.saus_zones = ['WR', 'CR', 'KR', 'SW', 'SR', 'SEC', 'ECO']
+        self.saus_zones = ['WR', 'CR', 'KR', 'SW', 'SR', 'SEC', 'ECO','SC',]
         
         # Initialize wagon classifier
         self.wagon_classifier = WagonClassifier()
@@ -124,6 +124,27 @@ class CSVProcessor:
         # Apply conversions with SAUN having priority
         df.loc[saun_mask, 'IC STTN (Copy)'] = 'SAUN'
         df.loc[saus_mask, 'IC STTN (Copy)'] = 'SAUS'
+        
+        return df
+    
+    def _convert_sau_in_handed_over_section(self, df):
+        """Convert SAU in IC STTN (Copy) based on HANDED OVER ZONE TO"""
+        if 'IC STTN (Copy)' in df.columns and 'HANDED OVER ZONE TO' in df.columns:
+            mask = df['IC STTN (Copy)'] == 'SAU'
+            
+            # Debug prints
+            print(f"SAU rows found: {mask.sum()}")
+            print(f"HANDED OVER ZONE TO values: {df.loc[mask, 'HANDED OVER ZONE TO'].unique()}")
+            print(f"SAUS zones configured: {self.saus_zones}")
+            
+            saus_mask = mask & df['HANDED OVER ZONE TO'].isin(self.saus_zones)
+            saun_mask = mask & ~df['HANDED OVER ZONE TO'].isin(self.saus_zones)
+            
+            print(f"SAUS conversions: {saus_mask.sum()}")
+            print(f"SAUN conversions: {saun_mask.sum()}")
+            
+            df.loc[saus_mask, 'IC STTN (Copy)'] = 'SAUS'
+            df.loc[saun_mask, 'IC STTN (Copy)'] = 'SAUN'
         
         return df
     
