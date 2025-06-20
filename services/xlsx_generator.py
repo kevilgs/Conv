@@ -124,3 +124,32 @@ class XLSXGenerator:
             return df_filtered
         
         return df
+    
+    def _sort_dataframe_by_zones(self, df):
+        """Sort DataFrame by zones and maintain SAUN before SAUS order"""
+        
+        def get_station_order_key(station):
+            """Custom sorting to ensure SAUN comes before SAUS"""
+            if station == 'SAUN':
+                return (0, station)  # SAUN gets priority 0
+            elif station == 'SAUS':
+                return (1, station)  # SAUS gets priority 1
+            else:
+                return (2, station)  # All others get priority 2
+        
+        # Sort by zone first, then by custom station order
+        df['zone_sort_key'] = df['ZONE TO'].map(self.zone_order)
+        df['station_sort_key'] = df['IC STTN'].apply(get_station_order_key)
+        df['station_copy_sort_key'] = df['IC STTN (Copy)'].apply(get_station_order_key)
+        
+        # Sort maintaining SAUN before SAUS
+        sorted_df = df.sort_values([
+            'zone_sort_key',
+            'station_sort_key',
+            'station_copy_sort_key'
+        ])
+        
+        # Remove helper columns
+        sorted_df = sorted_df.drop(['zone_sort_key', 'station_sort_key', 'station_copy_sort_key'], axis=1)
+        
+        return sorted_df

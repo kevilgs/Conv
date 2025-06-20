@@ -23,20 +23,38 @@ def get_writable_path(relative_path):
     
     return os.path.join(base_path, relative_path)
 
+def get_deployment_base_path():
+    """Detect if running on deployment platform and return appropriate base path"""
+    # Check for Render
+    if 'RENDER' in os.environ:
+        return '/tmp'
+    # Check for PythonAnywhere
+    elif '/home/' in os.getcwd() and 'pythonanywhere' in os.getcwd():
+        return '/home/kevilgs/mysite'
+    # Check for Heroku
+    elif 'DYNO' in os.environ:
+        return '/tmp'
+    # Local development
+    else:
+        return os.path.abspath(".")
+
 class Config:
     # Flask settings
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'your-production-secret-key-render'
     DEBUG = False
     
-    # File upload settings - use /tmp for Render
-    UPLOAD_FOLDER = '/tmp/uploads'
+    # Get base path for deployment vs local
+    BASE_PATH = get_deployment_base_path()
+    
+    # File upload settings - adaptive paths
+    UPLOAD_FOLDER = get_writable_path('uploads') if BASE_PATH == os.path.abspath(".") else os.path.join(BASE_PATH, 'uploads')
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024
     ALLOWED_EXTENSIONS = {'csv'}
     
-    # Output settings - use /tmp for Render (ephemeral storage)
-    INTERMEDIATE_FOLDER = '/tmp/intermediate'
-    REPORTS_FOLDER = '/tmp/reports' 
-    DATA_FOLDER = '/tmp/data'
+    # Output settings - adaptive paths
+    INTERMEDIATE_FOLDER = get_writable_path('intermediate') if BASE_PATH == os.path.abspath(".") else os.path.join(BASE_PATH, 'intermediate')
+    REPORTS_FOLDER = get_writable_path('reports') if BASE_PATH == os.path.abspath(".") else os.path.join(BASE_PATH, 'reports')
+    DATA_FOLDER = get_writable_path('data') if BASE_PATH == os.path.abspath(".") else os.path.join(BASE_PATH, 'data')
     
     # Data files
     PH_STATIONS_FILE = os.path.join(DATA_FOLDER, 'ph_stations.csv')
@@ -44,9 +62,15 @@ class Config:
     
     @staticmethod
     def init_app():
+        print(f"=== CONFIG DEBUG ===")
+        print(f"BASE_PATH: {Config.BASE_PATH}")
+        print(f"INTERMEDIATE_FOLDER: {Config.INTERMEDIATE_FOLDER}")
+        print(f"REPORTS_FOLDER: {Config.REPORTS_FOLDER}")
+        
         for folder in [Config.UPLOAD_FOLDER, Config.INTERMEDIATE_FOLDER, 
                       Config.REPORTS_FOLDER, Config.DATA_FOLDER]:
             os.makedirs(folder, exist_ok=True)
+            print(f"Created/verified: {folder}")
         Config._create_default_data_files()
     
     @staticmethod 
@@ -66,7 +90,7 @@ class Config:
                 "BCN": "JUMBO", "BCNAHSM1": "JUMBO", "BCNAHSM2": "JUMBO", "BCNHL": "JUMBO", 
                 "BOXN": "BOX", "BOXNEL": "BOX", "BOXNER": "BOX",
                 "BTPN": "BTPN", "BTPG": "BTPG",
-                "BFK": "CONT", "BKI": "CONT", "BLC": "CONT",
+                "BFK": "CONT", "BKI": "CONT", "BLC": "CONT", "BLSS": "CONT",  # Added BLSS
                 "BFNS": "SHRA", "BRN": "SHRA", "SHRA": "SHRA"
             }
             with open(Config.WAGON_CLASSIFICATIONS_FILE, 'w', newline='', encoding='utf-8') as f:

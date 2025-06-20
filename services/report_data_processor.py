@@ -140,9 +140,12 @@ class ReportDataProcessor:
                         details['OTHERS'].append(f"{classification}[{sttn}]")
                     else:
                         details['OTHERS'].append(f"{classification}[{sttn}]-{count}")
-        
-        # Calculate EMPTIES - group by HANDED OVER TYPE with L/E = E
-        empties_data = station_data[station_data['HANDED OVER L/E'] == 'E']
+        # Filter for empties BUT exclude CONT wagon types
+        empties_data = station_data[
+            (station_data['HANDED OVER L/E'] == 'E') & 
+            (station_data['HANDEDOVER CLASSIFICATION'] != 'CONT')  # Exclude CONT
+            ]
+
         if not empties_data.empty:
             type_counts = Counter(empties_data['HANDED OVER TYPE'])
             for wagon_type, count in type_counts.items():
@@ -150,7 +153,6 @@ class ReportDataProcessor:
                     details['EMPTIES'].append(wagon_type)
                 else:
                     details['EMPTIES'].append(f"{wagon_type}-{count}")
-        
         # Calculate L+E counts for handedover
         details['JUMBO_LE'] = self._calculate_le_counts(station_data, 'JUMBO', is_handedover=True)
         details['BOXN_LE'] = self._calculate_le_counts(station_data, 'BOX', is_handedover=True)  # Use BOX from intermediate
@@ -249,7 +251,8 @@ class ReportDataProcessor:
                         details['OTHERS'].append(f"{classification}[{sttn}]-{count}")
         
         # Calculate EMPTIES - group by TAKEN OVER TYPE with L/E = E
-        empties_data = station_data[station_data['TAKEN OVER L/E'] == 'E']
+        empties_data = station_data[(station_data['TAKEN OVER L/E'] == 'E') &
+                                    (station_data['TAKENOVER CLASSIFICATION'] != 'CONT')]  # Exclude CONT
         if not empties_data.empty:
             type_counts = Counter(empties_data['TAKEN OVER TYPE'])
             for wagon_type, count in type_counts.items():

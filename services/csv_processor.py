@@ -88,8 +88,8 @@ class CSVProcessor:
         saus_mask = mask & df['TAKEN OVER ZONE FROM'].isin(self.saus_zones)
         saun_mask = mask & ~df['TAKEN OVER ZONE FROM'].isin(self.saus_zones)
         
-        df.loc[saus_mask, 'IC STTN'] = 'SAUS'
         df.loc[saun_mask, 'IC STTN'] = 'SAUN'
+        df.loc[saus_mask, 'IC STTN'] = 'SAUS'
         
         return df
     
@@ -163,18 +163,20 @@ class CSVProcessor:
             else:
                 return 1000
         
-        # Add sorting columns for IC STTN (takenover section)
+        # Add zone priority
         df['zone_priority'] = df['ZONE TO'].apply(get_zone_priority)
-        df['station_priority'] = df.apply(lambda row: get_station_priority(row['ZONE TO'], row['IC STTN']), axis=1)
         
-        # Add sorting columns for IC STTN (Copy) (handedover section) 
-        df['station_copy_priority'] = df.apply(lambda row: get_station_priority(row['ZONE TO'], row['IC STTN (Copy)']), axis=1)
+        # Create combined sorting key for BOTH IC STTN and IC STTN (Copy)
+        df['combined_priority'] = df.apply(lambda row: (
+            get_station_priority(row['ZONE TO'], row['IC STTN']),
+            get_station_priority(row['ZONE TO'], row['IC STTN (Copy)'])
+        ), axis=1)
         
-        # Sort primarily by IC STTN (Copy) order for handedover section
-        # This ensures handedover section follows the SAUN->SAUS order
-        sorted_df = df.sort_values(['zone_priority', 'station_copy_priority', 'station_priority']).drop([
-            'zone_priority', 'station_priority', 'station_copy_priority'
-        ], axis=1)
+        # Sort by zone first, then by combined priority
+        sorted_df = df.sort_values([
+            'zone_priority',
+            'combined_priority'
+        ]).drop(['zone_priority', 'combined_priority'], axis=1)
         
         return sorted_df
     

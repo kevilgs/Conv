@@ -11,7 +11,7 @@ class FinalReportGenerator:
         self.data_processor = ReportDataProcessor()
     
     def generate_final_report(self, handedover_data, takenover_data, original_filename):
-        """Generate the final formatted report"""
+        """Generate final report from processed intermediate data"""
         try:
             wb = Workbook()
             ws = wb.active
@@ -25,6 +25,45 @@ class FinalReportGenerator:
             intermediate_file = self._get_intermediate_file_path(original_filename)
             df = pd.read_excel(intermediate_file)
             handedover_stations, takenover_stations = processor.get_stations_in_order(df)
+            
+            # Get station lists
+            handedover_stations = list(handedover_data.keys())
+            takenover_stations = list(takenover_data.keys())
+            
+            # Complete fix: Maintain all zone ordering while ensuring SAUN before SAUS
+            def maintain_zone_ordering(stations):
+                # Zone order
+                zone_order = ['CR', 'WC', 'NW', 'DFCR']
+                
+                # Stations within each zone (with SAUN before SAUS in DFCR)
+                zone_stations = {
+                    'CR': ['BSR', 'JL', 'KNW'],
+                    'WC': ['SHRN', 'NAD', 'MKC', 'MTA', 'CNA'],
+                    'NW': ['BEC', 'AII', 'HMT', 'BLDI', 'PNU'],
+                    'DFCR': ['BHU', 'CECC', 'GGM', 'MSH', 'SAUN', 'SAUS', 'MPR', 'GTX', 'PAO', 'NOL', 'BHET', 'SAH', 'SJN']
+                }
+                
+                # Flatten all expected stations in order
+                all_ordered_stations = []
+                for zone in zone_order:
+                    all_ordered_stations.extend(zone_stations[zone])
+                
+                # Order actual stations based on expected order
+                ordered_stations = []
+                for station in all_ordered_stations:
+                    if station in stations:
+                        ordered_stations.append(station)
+                
+                # Add any stations not in our ordering at the end
+                for station in stations:
+                    if station not in ordered_stations:
+                        ordered_stations.append(station)
+                
+                return ordered_stations
+            
+            # Fix station order
+            handedover_stations = maintain_zone_ordering(handedover_stations)
+            takenover_stations = maintain_zone_ordering(takenover_stations)
             
             # Populate data starting from row 5
             last_data_row = self._populate_report_data(ws, handedover_data, takenover_data, handedover_stations, takenover_stations)
