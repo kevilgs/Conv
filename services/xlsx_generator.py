@@ -104,22 +104,68 @@ class XLSXGenerator:
         return df
     
     def _remove_duplicate_rows(self, df):
-        """Remove rows where TAKEN OVER and HANDED OVER have same STTN TO and TYPE"""
-        if all(col in df.columns for col in ['TAKEN OVER STTN TO', 'HANDED OVER STTN TO', 
-                                            'TAKEN OVER TYPE', 'HANDED OVER TYPE']):
+        """
+        Remove rows where the same station appears as both TAKEN OVER STTN TO and HANDED OVER STTN TO
+        for matching IC STTN and IC STTN (Copy), even if they're in different rows.
+        
+        Example: If IC STTN "JL" has TAKEN OVER STTN TO "TWS" in one row and 
+        another row has IC STTN (Copy) "JL" with HANDED OVER STTN TO "TWS", both rows should be deleted.
+        """
+        if all(col in df.columns for col in ['IC STTN', 'IC STTN (Copy)', 'TAKEN OVER STTN TO', 'HANDED OVER STTN TO']):
+            # Original row count for reporting
+            original_count = len(df)
             
-            # Create mask for rows to keep (opposite of what we want to delete)
-            same_sttn = df['TAKEN OVER STTN TO'] == df['HANDED OVER STTN TO']
-            same_type = df['TAKEN OVER TYPE'] == df['HANDED OVER TYPE']
+            # Create a temporary column to track which rows to delete
+            df['delete_row'] = False
             
-            # Rows to delete are where BOTH conditions are true
-            rows_to_delete = same_sttn & same_type
+            # Get unique station names that appear in either IC STTN or IC STTN (Copy)
+            all_stations = set(df['IC STTN'].dropna().unique()) | set(df['IC STTN (Copy)'].dropna().unique())
+            print("\n=== DUPLICATE STATION DETECTION ===")
             
-            # Keep rows where condition is NOT true
-            df_filtered = df[~rows_to_delete].copy()
+            for station in all_stations:
+                # Get all takenover rows for this station
+                takenover_rows = df[df['IC STTN'] == station]
+                
+                # Get all handedover rows for this station
+                handedover_rows = df[df['IC STTN (Copy)'] == station]
+                
+                # If this station appears in both sections
+                if not takenover_rows.empty and not handedover_rows.empty:
+                    # Get all TAKEN OVER STTN TO values for this station
+                    taken_over_stations = set(takenover_rows['TAKEN OVER STTN TO'].dropna())
+                    
+                    # Get all HANDED OVER STTN TO values for this station  
+                    handed_over_stations = set(handedover_rows['HANDED OVER STTN TO'].dropna())
+                    
+                    # Find stations that appear in both lists
+                    duplicate_stations = taken_over_stations.intersection(handed_over_stations)
+                    
+                    if duplicate_stations:
+                        print(f"IC STTN '{station}' has duplicate destinations:")
+                        # Mark rows for deletion where station is in both columns
+                        for dup_station in duplicate_stations:
+                            print(f"  - STTN TO '{dup_station}' appears in both TAKEN OVER and HANDED OVER")
+                            # Mark taken over rows with this station
+                            taken_mask = (df['IC STTN'] == station) & (df['TAKEN OVER STTN TO'] == dup_station)
+                            taken_rows = df[taken_mask]
+                            df.loc[taken_mask, 'delete_row'] = True
+
+                            for idx, row in taken_rows.iterrows():
+                             print(f"    * Deleting TAKEN OVER row: {row['IC STTN']} → {row['TAKEN OVER STTN TO']} ({row['TAKEN OVER TYPE']})")
+                            
+                            # Mark handed over rows with this station
+                            handed_mask = (df['IC STTN (Copy)'] == station) & (df['HANDED OVER STTN TO'] == dup_station)
+                            handed_rows = df[handed_mask]
+                            df.loc[handed_mask, 'delete_row'] = True
+
+                            for idx, row in handed_rows.iterrows():
+                                print(f"    * Deleting HANDED OVER row: {row['IC STTN (Copy)']} → {row['HANDED OVER STTN TO']} ({row['HANDED OVER TYPE']})")
             
-            deleted_count = len(df) - len(df_filtered)
-            print(f"Deleted {deleted_count} duplicate rows (same STTN TO and TYPE)")
+            # Remove rows marked for deletion
+            df_filtered = df[~df['delete_row']].drop('delete_row', axis=1)
+            
+            deleted_count = original_count - len(df_filtered)
+            print(f"Deleted {deleted_count} rows where the same station appears in both TAKEN OVER and HANDED OVER sections")
             
             return df_filtered
         
