@@ -1,5 +1,5 @@
 import pandas as pd
-from datetime import datetime
+from datetime import datetime,timedelta
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
@@ -34,7 +34,7 @@ class ReportFormatter:
         """Create the complete report structure with headers and formatting"""
         
         # 1st Row - Main Title
-        current_date = datetime.now().strftime('%d-%m-%Y')
+        current_date = (datetime.now() - timedelta(days=1)).strftime('%d-%m-%Y')
         ws['A1'] = f"ZONAL INTERCHANGE ON {current_date}"
         ws['A1'].font = self.title_font
         ws['A1'].alignment = self.center_align

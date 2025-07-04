@@ -17,6 +17,18 @@ class ReportDataProcessor:
         # Classifications we want in details
         self.detail_classifications = ['JUMBO', 'BOX', 'BOXN', 'BTPN', 'BTPG', 'SHRA', 'CONT']  # Add 'CONT'
     
+        self.locochange_types = self._load_locochange_types()
+
+    def _load_locochange_types(self):
+        import os
+        path = os.path.join(os.path.dirname(__file__), '..', 'data', 'locoChange.csv')
+        try:
+            with open(path, encoding='utf-8') as f:
+                return [line.strip().upper() for line in f if line.strip()]
+        except Exception as e:
+            print(f"Could not load locoChange.csv: {e}")
+            return []
+
     def process_handedover_data(self, df):
         """Process handedover data grouped by IC STTN (Copy)"""
         handedover_data = {}
@@ -398,20 +410,26 @@ class ReportDataProcessor:
         return diesel_count
     
     def _calculate_trains_count(self, station_data, is_handedover=True):
-        """Calculate trains count in A/B format"""
+        """Calculate trains count in A/B format, excluding rows with types in locoChange.csv"""
         if is_handedover:
             sttn_col = 'HANDED OVER STTN TO'
+            type_col = 'HANDED OVER TYPE'
             loco_col = 'HANDED OVER LOCO TYPE'
         else:
             sttn_col = 'TAKEN OVER STTN TO'
+            type_col = 'TAKEN OVER TYPE'
             loco_col = 'TAKEN OVER LOCO TYPE'
-    
-        # Count non-blank values in STTN TO column
-        a_count = station_data[sttn_col].notna().sum()
-    
-        # Count non-blank values in LOCO TYPE column  
+
+        # Exclude rows where type_col matches any value from locoChange.csv (case-insensitive)
+        mask = ~station_data[type_col].astype(str).str.strip().str.upper().isin(self.locochange_types)
+        filtered = station_data[mask]
+
+        # Count non-blank values in STTN TO column, after filtering
+        a_count = filtered[sttn_col].notna().sum()
+
+        # Count non-blank values in LOCO TYPE column (no filtering)
         b_count = station_data[loco_col].notna().sum()
-    
+
         return f"{a_count}/{b_count}"
     
     def _calculate_cont_count(self, station_data, is_handedover=True):
