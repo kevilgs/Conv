@@ -28,40 +28,119 @@ class CSVProcessor:
         self.wagon_classifier = WagonClassifier()
     
     def process_csv(self, filename):
-        """Extract specific columns from row 3 onwards and group by ZONE TO and IC STTN"""
+        """Extract specific columns from row 3 onwards, handle flexible headers, and group by ZONE TO and IC STTN"""
         try:
             file_path = os.path.join(Config.UPLOAD_FOLDER, filename)
-            
-            # Read CSV starting from row 3 (index 2)
-            df = pd.read_csv(file_path, skiprows=2)
-            
-            # Extract only required columns
-            missing_columns = [col for col in self.required_columns if col not in df.columns]
-            if missing_columns:
-                raise ValueError(f"Missing columns: {missing_columns}")
-            
-            extracted_df = df[self.required_columns].copy()
-            
-            # Remove rows with NaN in ZONE TO or IC STTN
-            extracted_df = extracted_df.dropna(subset=['ZONE TO', 'IC STTN'])
-            
-            # Add classification columns
-            extracted_df = self._add_classification_columns(extracted_df)
-            
-            # Convert CNA of NW zone to AII
-            extracted_df = self._convert_nw_cna_to_aii(extracted_df)
-            
-            # Convert SAU in IC STTN based on TAKEN OVER ZONE FROM (for taken over section only)
-            extracted_df = self._convert_sau_in_taken_over_section(extracted_df)
-            
-            # Create IC STTN (Copy) for handedover section
-            extracted_df = self._create_ic_sttn_copy(extracted_df)
-            
-            # Group and sort data
-            grouped_df = self._group_and_sort(extracted_df)
-            
-            return grouped_df
-            
+            if "MAFour" in filename:
+                # MAFour logic: direct extraction by required columns
+                df = pd.read_csv(file_path, skiprows=2)
+                missing_columns = [col for col in self.required_columns if col not in df.columns]
+                if missing_columns:
+                    raise ValueError(f"Missing columns: {missing_columns}")
+
+                extracted_df = df[self.required_columns].copy()
+                extracted_df = extracted_df.dropna(subset=['ZONE TO', 'IC STTN'])
+
+                # Add classification columns
+                extracted_df = self._add_classification_columns(extracted_df)
+                # Convert CNA of NW zone to AII
+                extracted_df = self._convert_nw_cna_to_aii(extracted_df)
+                # Convert SAU in IC STTN based on TAKEN OVER ZONE FROM (for taken over section only)
+                extracted_df = self._convert_sau_in_taken_over_section(extracted_df)
+                # Create IC STTN (Copy) for handedover section
+                extracted_df = self._create_ic_sttn_copy(extracted_df)
+                # Group and sort data
+                grouped_df = self._group_and_sort(extracted_df)
+                return grouped_df
+
+            else:
+                # Flexible extraction logic
+                df = pd.read_csv(file_path, skiprows=2)
+                df.columns = df.columns.str.strip()
+                columns_to_extract = [
+                    'ZONE FROM', 'STATION TO', 'LOAD L/E', 'LOAD TYPE', 'LOCO NO', 'LOCO TYPE', 'ZN-STTN',
+                    'ZONE FROM', 'STATION TO', 'LOAD L/E', 'LOAD TYPE', 'LOCO NO', 'LOCO TYPE'
+                ]
+
+                def get_all_matching_columns(df_columns, base_name):
+                    import re
+                    pattern = re.compile(rf"^{re.escape(base_name)}(\.\d+)?$")
+                    return [col for col in df_columns if pattern.match(col)]
+
+                extracted_cols = []
+                used = [0] * len(df.columns)
+                for col_name in columns_to_extract:
+                    matches = get_all_matching_columns(df.columns, col_name)
+                    for idx, col in enumerate(df.columns):
+                        if col in matches and not used[idx]:
+                            extracted_cols.append(col)
+                            used[idx] = 1
+                            break
+
+                extracted_df = df[extracted_cols].copy()
+
+                # Find the index of 'ZN-STTN' in the extracted columns
+                zn_sttn_indices = [i for i, col in enumerate(extracted_df.columns) if col.startswith('ZN-STTN')]
+                if not zn_sttn_indices:
+                    raise Exception("No 'ZN-STTN' column found in extracted columns.")
+
+                # For your case, you have only one ZN-STTN, so:
+                takenover_cols = extracted_df.columns[:zn_sttn_indices[0]].tolist()
+                zn_sttn_col = extracted_df.columns[zn_sttn_indices[0]]
+                handedover_cols = extracted_df.columns[zn_sttn_indices[0]+1:].tolist()
+
+                # Define new names
+                takenover_rename = {
+                    old: new for old, new in zip(
+                        takenover_cols,
+                        ['TAKEN OVER ZONE FROM', 'TAKEN OVER STTN TO', 'TAKEN OVER L/E', 'TAKEN OVER TYPE', 'TAKEN OVER LOCO', 'TAKEN OVER LOCO TYPE']
+                    )
+                }
+                handedover_rename = {
+                    old: new for old, new in zip(
+                        handedover_cols,
+                        ['HANDED OVER ZONE TO', 'HANDED OVER STTN TO', 'HANDED OVER L/E', 'HANDED OVER TYPE', 'HANDED OVER LOCO', 'HANDED OVER LOCO TYPE']
+                    )
+                }
+                zn_sttn_rename = {zn_sttn_col: 'ZN-STTN'}
+
+                # Combine all renames
+                all_renames = {}
+                all_renames.update(takenover_rename)
+                all_renames.update(zn_sttn_rename)
+                all_renames.update(handedover_rename)
+
+                # Rename columns
+                extracted_df = extracted_df.rename(columns=all_renames)
+
+                # Split ZN-STTN into "ZONE TO" and "IC STTN" FIRST
+                extracted_df[['ZONE TO', 'IC STTN']] = extracted_df['ZN-STTN'].str.split('-', n=1, expand=True)
+
+                # Now build the final DataFrame in the required order
+                final_columns = [
+                    'ZONE TO', 'IC STTN', 'TAKEN OVER ZONE FROM', 'TAKEN OVER STTN TO', 'TAKEN OVER L/E', 'TAKEN OVER TYPE', 'TAKEN OVER LOCO', 'TAKEN OVER LOCO TYPE',
+                    'HANDED OVER ZONE TO', 'HANDED OVER STTN TO', 'HANDED OVER L/E', 'HANDED OVER TYPE', 'HANDED OVER LOCO', 'HANDED OVER LOCO TYPE'
+                ]
+
+                final_df = pd.DataFrame()
+                for col in final_columns:
+                    final_df[col] = extracted_df[col] if col in extracted_df.columns else None
+
+                # Drop rows with NaN in ZONE TO or IC STTN
+                final_df = final_df.dropna(subset=['ZONE TO', 'IC STTN'])
+
+                print("Final columns after renaming and before classification:")
+                print(final_df.columns.tolist())
+
+                # Add classification columns, conversions, grouping, etc.
+                final_df = self._add_classification_columns(final_df)
+                final_df = self._convert_nw_cna_to_aii(final_df)
+                final_df = self._convert_sau_in_taken_over_section(final_df)
+                final_df = self._create_ic_sttn_copy(final_df)
+                grouped_df = self._group_and_sort(final_df)
+
+                return grouped_df
+
         except Exception as e:
             raise Exception(f"Error processing CSV: {str(e)}")
     
@@ -97,6 +176,8 @@ class CSVProcessor:
         """Create IC STTN (Copy) for handedover section with different logic"""
         # Start with original IC STTN before any conversions (except CNA->AII)
         df['IC STTN (Copy)'] = df['IC STTN'].copy()
+
+        print(df[df['IC STTN (Copy)'] == 'SAU'])
         
         # Handle CNA conversion for IC STTN (Copy) as well
         mask_cna = (df['ZONE TO'] == 'NW') & (df['IC STTN (Copy)'] == 'CNA')
@@ -184,17 +265,85 @@ class CSVProcessor:
         """Get original IC STTN column before any conversion for handed over section"""
         try:
             file_path = os.path.join(Config.UPLOAD_FOLDER, filename)
-            df = pd.read_csv(file_path, skiprows=2)
-            extracted_df = df[self.required_columns].copy()
-            extracted_df = extracted_df.dropna(subset=['ZONE TO', 'IC STTN'])
-            
-            # Add classification columns before any conversions
-            extracted_df = self._add_classification_columns(extracted_df)
-            
-            # Only convert CNA to AII, don't convert SAU yet
-            extracted_df = self._convert_nw_cna_to_aii(extracted_df)
-            
-            return extracted_df['IC STTN']
-            
+            if "MAFour" in filename:
+                df = pd.read_csv(file_path, skiprows=2)
+                extracted_df = df[self.required_columns].copy()
+                extracted_df = extracted_df.dropna(subset=['ZONE TO', 'IC STTN'])
+
+                # Add classification columns before any conversions
+                extracted_df = self._add_classification_columns(extracted_df)
+
+                # Only convert CNA to AII, don't convert SAU yet
+                extracted_df = self._convert_nw_cna_to_aii(extracted_df)
+
+                return extracted_df['IC STTN']
+            else:
+                df = pd.read_csv(file_path, skiprows=2)
+                df.columns = df.columns.str.strip()
+
+                # --- Flexible extraction and renaming logic (same as process_csv) ---
+                columns_to_extract = [
+                    'ZONE FROM', 'STATION TO', 'LOAD L/E', 'LOAD TYPE', 'LOCO NO', 'LOCO TYPE', 'ZN-STTN',
+                    'ZONE FROM', 'STATION TO', 'LOAD L/E', 'LOAD TYPE', 'LOCO NO', 'LOCO TYPE'
+                ]
+
+                def get_all_matching_columns(df_columns, base_name):
+                    import re
+                    pattern = re.compile(rf"^{re.escape(base_name)}(\.\d+)?$")
+                    return [col for col in df_columns if pattern.match(col)]
+
+                extracted_cols = []
+                used = [0] * len(df.columns)
+                for col_name in columns_to_extract:
+                    matches = get_all_matching_columns(df.columns, col_name)
+                    for idx, col in enumerate(df.columns):
+                        if col in matches and not used[idx]:
+                            extracted_cols.append(col)
+                            used[idx] = 1
+                            break
+
+                extracted_df = df[extracted_cols].copy()
+
+                zn_sttn_indices = [i for i, col in enumerate(extracted_df.columns) if col.startswith('ZN-STTN')]
+                if not zn_sttn_indices:
+                    raise Exception("No 'ZN-STTN' column found in extracted columns.")
+
+                takenover_cols = extracted_df.columns[:zn_sttn_indices[0]].tolist()
+                zn_sttn_col = extracted_df.columns[zn_sttn_indices[0]]
+                handedover_cols = extracted_df.columns[zn_sttn_indices[0]+1:].tolist()
+
+                takenover_rename = {
+                    old: new for old, new in zip(
+                        takenover_cols,
+                        ['TAKEN OVER ZONE FROM', 'TAKEN OVER STTN TO', 'TAKEN OVER L/E', 'TAKEN OVER TYPE', 'TAKEN OVER LOCO', 'TAKEN OVER LOCO TYPE']
+                    )
+                }
+                handedover_rename = {
+                    old: new for old, new in zip(
+                        handedover_cols,
+                        ['HANDED OVER ZONE TO', 'HANDED OVER STTN TO', 'HANDED OVER L/E', 'HANDED OVER TYPE', 'HANDED OVER LOCO', 'HANDED OVER LOCO TYPE']
+                    )
+                }
+                zn_sttn_rename = {zn_sttn_col: 'ZN-STTN'}
+
+                all_renames = {}
+                all_renames.update(takenover_rename)
+                all_renames.update(zn_sttn_rename)
+                all_renames.update(handedover_rename)
+
+                extracted_df = extracted_df.rename(columns=all_renames)
+                extracted_df[['ZONE TO', 'IC STTN']] = extracted_df['ZN-STTN'].str.split('-', n=1, expand=True)
+
+                # Drop rows with NaN in ZONE TO or IC STTN
+                extracted_df = extracted_df.dropna(subset=['ZONE TO', 'IC STTN'])
+
+                # Add classification columns before any conversions
+                extracted_df = self._add_classification_columns(extracted_df)
+
+                # Only convert CNA to AII, don't convert SAU yet
+                extracted_df = self._convert_nw_cna_to_aii(extracted_df)
+
+                return extracted_df['IC STTN']
+
         except Exception as e:
             raise Exception(f"Error getting original IC STTN: {str(e)}")
