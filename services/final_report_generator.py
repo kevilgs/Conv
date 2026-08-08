@@ -77,7 +77,8 @@ class FinalReportGenerator:
             self._add_total_row(ws, grand_total_row, totals_handed, totals_taken, "GRAND TOTAL")
             
             # Create STOCK table after the main report
-            stock_table_end_row = self.formatter.create_stock_table(ws, grand_total_row)
+            ph_stations = self.data_processor._load_ph_stations()
+            stock_table_end_row = self.formatter.create_stock_table(ws, grand_total_row, df, ph_stations)
             
             # Calculate custom data and render custom breakdown table
             custom_data = processor.calculate_custom_table_data(df)

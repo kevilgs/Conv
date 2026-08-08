@@ -298,8 +298,8 @@ class ReportFormatter:
             ws[f'P{row}'].font = station_trains_font
             ws[f'Q{row}'].font = station_trains_font
     
-    def create_stock_table(self, ws, start_row):
-        """Create STOCK table with OB, H/O, T/O, CB columns"""
+    def create_stock_table(self, ws, start_row, df, ph_stations):
+        """Create STOCK table with OB, H/O, T/O, CB columns auto-filled"""
         # Leave some gap (3 rows) from last data
         table_start_row = start_row + 3
         
@@ -329,10 +329,36 @@ class ReportFormatter:
             ws[f'A{row}'].fill = self.white_fill
             ws[f'A{row}'].border = self.thin_border
             
-            # Empty cells for OB, H/O, T/O, CB (columns B, C, D, E)
+            # Calculate H/O and T/O values
+            search_class = 'BOX' if stock_item == 'BOXN' else stock_item
+            
+            ho_df = df[df['HANDEDOVER CLASSIFICATION'] == search_class]
+            ho_total = len(ho_df)
+            ho_empty = len(ho_df[ho_df['HANDED OVER L/E'] == 'E'])
+            
+            to_df = df[df['TAKENOVER CLASSIFICATION'] == search_class]
+            to_total = len(to_df)
+            to_empty = len(to_df[to_df['TAKEN OVER L/E'] == 'E'])
+            
+            if stock_item == 'BOXN':
+                to_l_df = to_df[to_df['TAKEN OVER L/E'] == 'L']
+                to_empty = len(to_l_df[to_l_df['TAKEN OVER STTN TO'].isin(ph_stations)])
+                
+            ho_val = f"{ho_total}/{ho_empty}"
+            to_val = f"{to_total}/{to_empty}"
+            
+            # Cells for OB, H/O, T/O, CB (columns B, C, D, E)
             for col in ['B', 'C', 'D', 'E']:
                 cell = ws[f'{col}{row}']
-                cell.value = ""  # Empty for manual entry
+                if col == 'B':
+                    cell.value = ""  # Empty for manual entry
+                elif col == 'C':
+                    cell.value = ho_val
+                elif col == 'D':
+                    cell.value = to_val
+                elif col == 'E':
+                    cell.value = f'=IFERROR(VALUE(B{row}), 0) + IFERROR(VALUE(LEFT(D{row}, FIND("/", D{row})-1)), IFERROR(VALUE(D{row}), 0)) - IFERROR(VALUE(LEFT(C{row}, FIND("/", C{row})-1)), IFERROR(VALUE(C{row}), 0))'
+                
                 cell.font = self.normal_font
                 cell.alignment = self.center_align
                 cell.fill = self.white_fill
