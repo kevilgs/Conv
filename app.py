@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect, url_for
 from config import Config
 import webbrowser
 import threading
@@ -22,7 +22,7 @@ def create_app():
     # Main route
     @app.route('/')
     def index():
-        return render_template('index.html')
+        return redirect(url_for('upload.upload'))
     
     return app
 
