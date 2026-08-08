@@ -367,12 +367,11 @@ class ReportFormatter:
             cell.border = border
             cell.fill = self.white_fill
 
-        def write_stations(ws, row, col_start_idx, stations_dict):
+        def write_stations(ws, row, col_start_idx, stations_list):
             """Write stations horizontally starting from col_start_idx"""
             col_idx = col_start_idx
-            for sttn, count in stations_dict.items():
+            for val in stations_list:
                 col_letter = get_column_letter(col_idx)
-                val = f"{sttn}-[{count}]"
                 format_cell(ws[f'{col_letter}{row}'], val, normal_font, left_align, thin_border)
                 ws.column_dimensions[col_letter].width = max(ws.column_dimensions[col_letter].width, len(val) + 2)
                 col_idx += 1
@@ -384,25 +383,20 @@ class ReportFormatter:
             # 1. Main Title Row
             ws.merge_cells(start_row=current_row, start_column=1, end_row=current_row, end_column=10)
             format_cell(ws.cell(row=current_row, column=1), class_name, bold_font, center_align, thin_border)
+            # Apply border to the rest of the merged cells
+            for col in range(2, 11):
+                ws.cell(row=current_row, column=col).border = thin_border
             current_row += 1
             
             # 2. Header Row (TOTAL and EMPTY/PH)
             format_cell(ws.cell(row=current_row, column=2), "TOTAL", bold_font, center_align, thin_border)
-            
-            if class_name == 'BOXN':
-                format_cell(ws.cell(row=current_row, column=3), "POWERHOUSE(PH)", bold_font, center_align, thin_border)
-            else:
-                format_cell(ws.cell(row=current_row, column=3), "EMPTY", bold_font, center_align, thin_border)
-            
+            format_cell(ws.cell(row=current_row, column=3), "EMPTY", bold_font, center_align, thin_border)
             current_row += 1
             
             # 3. H/O Row
             format_cell(ws.cell(row=current_row, column=1), "H/O", bold_font, center_align, thin_border)
             format_cell(ws.cell(row=current_row, column=2), data['HO']['total'], normal_font, center_align, thin_border)
-            if class_name != 'BOXN':
-                format_cell(ws.cell(row=current_row, column=3), data['HO']['empty_total'], normal_font, center_align, thin_border)
-            else:
-                format_cell(ws.cell(row=current_row, column=3), 0, normal_font, center_align, thin_border) # Default 0 for BOXN HO
+            format_cell(ws.cell(row=current_row, column=3), data['HO']['empty_total'], normal_font, center_align, thin_border)
             
             format_cell(ws.cell(row=current_row, column=4), "E", bold_font, center_align, thin_border)
             format_cell(ws.cell(row=current_row, column=5), data['HO']['E']['total'], normal_font, center_align, thin_border)
@@ -414,6 +408,8 @@ class ReportFormatter:
             # T/O E
             format_cell(ws.cell(row=current_row, column=1), "T/O", bold_font, center_align, thin_border)
             format_cell(ws.cell(row=current_row, column=2), data['TO']['total'], normal_font, center_align, thin_border)
+            
+            # Put the powerhouse value there in the empty column for BOXN during T/O
             if class_name == 'BOXN':
                 format_cell(ws.cell(row=current_row, column=3), data['TO']['ph_total'], normal_font, center_align, thin_border)
             else:

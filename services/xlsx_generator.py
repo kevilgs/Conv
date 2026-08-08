@@ -11,6 +11,7 @@ class XLSXGenerator:
             'IC STTN', 
             'TAKEN OVER ZONE FROM',
             'TAKEN OVER STTN TO',
+            'TAKEN OVER ZONE TO',
             'TAKEN OVER L/E',
             'TAKEN OVER TYPE',
             'TAKENOVER CLASSIFICATION',  # New column before TAKEN OVER LOCO
