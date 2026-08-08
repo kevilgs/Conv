@@ -79,6 +79,10 @@ class FinalReportGenerator:
             # Create STOCK table after the main report
             stock_table_end_row = self.formatter.create_stock_table(ws, grand_total_row)
             
+            # Calculate custom data and render custom breakdown table
+            custom_data = processor.calculate_custom_table_data(df)
+            self.formatter.create_custom_breakdown_table(ws, stock_table_end_row, custom_data)
+            
             # Save file
             output_filename = self._generate_output_filename(original_filename)
             wb.save(output_filename)

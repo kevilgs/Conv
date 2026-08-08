@@ -501,3 +501,84 @@ class ReportDataProcessor:
         
         # print(f"PH count: {ph_count}, OTH count: {oth_count}")
         return f"{ph_count}+{oth_count}"
+
+    def calculate_custom_table_data(self, df):
+        """Calculate data for the custom JUMBO, BOXN, BTPN breakdown table."""
+        from collections import Counter
+        
+        ph_stations = self._load_ph_stations()
+        
+        # Initialize structure
+        # stations dict will be {station_name: count}
+        custom_data = {
+            'JUMBO': {
+                'HO': {'total': 0, 'empty_total': 0, 'E': {'total': 0, 'stations': Counter()}},
+                'TO': {'total': 0, 'empty_total': 0, 'E': {'total': 0, 'stations': Counter()}, 'PU': {'total': 0, 'stations': Counter()}, 'B/P': {'total': 0, 'stations': Counter()}}
+            },
+            'BOXN': {
+                'HO': {'total': 0, 'empty_total': 0, 'E': {'total': 0, 'stations': Counter()}},
+                'TO': {'total': 0, 'ph_total': 0, 'E': {'total': 0, 'stations': Counter()}, 'PU': {'total': 0, 'stations': Counter()}, 'B/P': {'total': 0, 'stations': Counter()}, 'PH': {'total': 0, 'stations': Counter()}}
+            },
+            'BTPN': {
+                'HO': {'total': 0, 'empty_total': 0, 'E': {'total': 0, 'stations': Counter()}},
+                'TO': {'total': 0, 'empty_total': 0, 'E': {'total': 0, 'stations': Counter()}, 'PU': {'total': 0, 'stations': Counter()}, 'B/P': {'total': 0, 'stations': Counter()}}
+            }
+        }
+
+        # Process Handed Over (H/O)
+        for class_name in ['JUMBO', 'BOXN', 'BTPN']:
+            # Use 'BOX' for BOXN matching in intermediate df
+            search_class = 'BOX' if class_name == 'BOXN' else class_name
+            
+            # Filter HO data for this class
+            ho_df = df[df['HANDEDOVER CLASSIFICATION'] == search_class].copy()
+            
+            if not ho_df.empty:
+                # Calculate totals
+                custom_data[class_name]['HO']['total'] = len(ho_df)
+                
+                # E category
+                ho_e_df = ho_df[ho_df['HANDED OVER L/E'] == 'E']
+                custom_data[class_name]['HO']['empty_total'] = len(ho_e_df)
+                custom_data[class_name]['HO']['E']['total'] = len(ho_e_df)
+                for sttn in ho_e_df['HANDED OVER STTN TO'].dropna():
+                    custom_data[class_name]['HO']['E']['stations'][sttn] += 1
+            
+            # Filter TO data for this class
+            to_df = df[df['TAKENOVER CLASSIFICATION'] == search_class].copy()
+            
+            if not to_df.empty:
+                # Calculate totals
+                custom_data[class_name]['TO']['total'] = len(to_df)
+                
+                # E category
+                to_e_df = to_df[to_df['TAKEN OVER L/E'] == 'E']
+                if class_name != 'BOXN':
+                    custom_data[class_name]['TO']['empty_total'] = len(to_e_df)
+                custom_data[class_name]['TO']['E']['total'] = len(to_e_df)
+                for sttn in to_e_df['TAKEN OVER STTN TO'].dropna():
+                    custom_data[class_name]['TO']['E']['stations'][sttn] += 1
+                
+                # Loaded category
+                to_l_df = to_df[to_df['TAKEN OVER L/E'] == 'L']
+                
+                # Split Loaded into PU, B/P, (and PH for BOXN)
+                for _, row in to_l_df.iterrows():
+                    sttn_to = row['TAKEN OVER STTN TO']
+                    if pd.isna(sttn_to):
+                        continue
+                        
+                    zone_to = str(row.get('TAKEN OVER ZONE TO', '')).strip().upper()
+                    
+                    if class_name == 'BOXN' and sttn_to in ph_stations:
+                        custom_data[class_name]['TO']['PH']['total'] += 1
+                        custom_data[class_name]['TO']['PH']['stations'][sttn_to] += 1
+                        custom_data[class_name]['TO']['ph_total'] += 1
+                    elif zone_to == 'WR':
+                        custom_data[class_name]['TO']['PU']['total'] += 1
+                        custom_data[class_name]['TO']['PU']['stations'][sttn_to] += 1
+                    else:
+                        custom_data[class_name]['TO']['B/P']['total'] += 1
+                        custom_data[class_name]['TO']['B/P']['stations'][sttn_to] += 1
+
+        return custom_data

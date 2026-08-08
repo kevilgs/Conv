@@ -346,3 +346,105 @@ class ReportFormatter:
         # Return the last row of the table for future reference
         return table_start_row + len(stock_items)
 
+    def create_custom_breakdown_table(self, ws, start_row, custom_data):
+        """Create custom breakdown table for JUMBO, BOXN, BTPN"""
+        current_row = start_row + 2
+        
+        from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
+        from openpyxl.utils import get_column_letter
+
+        # Bold fonts
+        bold_font = Font(name='Arial', size=10, bold=True)
+        normal_font = Font(name='Arial', size=9)
+        center_align = Alignment(horizontal='center', vertical='center')
+        left_align = Alignment(horizontal='left', vertical='center')
+        thin_border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
+
+        def format_cell(cell, value, font, align, border):
+            cell.value = value
+            cell.font = font
+            cell.alignment = align
+            cell.border = border
+            cell.fill = self.white_fill
+
+        def write_stations(ws, row, col_start_idx, stations_dict):
+            """Write stations horizontally starting from col_start_idx"""
+            col_idx = col_start_idx
+            for sttn, count in stations_dict.items():
+                col_letter = get_column_letter(col_idx)
+                val = f"{sttn}-[{count}]"
+                format_cell(ws[f'{col_letter}{row}'], val, normal_font, left_align, thin_border)
+                ws.column_dimensions[col_letter].width = max(ws.column_dimensions[col_letter].width, len(val) + 2)
+                col_idx += 1
+            return col_idx
+
+        for class_name in ['JUMBO', 'BOXN', 'BTPN']:
+            data = custom_data[class_name]
+            
+            # 1. Main Title Row
+            ws.merge_cells(start_row=current_row, start_column=1, end_row=current_row, end_column=10)
+            format_cell(ws.cell(row=current_row, column=1), class_name, bold_font, center_align, thin_border)
+            current_row += 1
+            
+            # 2. Header Row (TOTAL and EMPTY/PH)
+            format_cell(ws.cell(row=current_row, column=2), "TOTAL", bold_font, center_align, thin_border)
+            
+            if class_name == 'BOXN':
+                format_cell(ws.cell(row=current_row, column=3), "POWERHOUSE(PH)", bold_font, center_align, thin_border)
+            else:
+                format_cell(ws.cell(row=current_row, column=3), "EMPTY", bold_font, center_align, thin_border)
+            
+            current_row += 1
+            
+            # 3. H/O Row
+            format_cell(ws.cell(row=current_row, column=1), "H/O", bold_font, center_align, thin_border)
+            format_cell(ws.cell(row=current_row, column=2), data['HO']['total'], normal_font, center_align, thin_border)
+            if class_name != 'BOXN':
+                format_cell(ws.cell(row=current_row, column=3), data['HO']['empty_total'], normal_font, center_align, thin_border)
+            else:
+                format_cell(ws.cell(row=current_row, column=3), 0, normal_font, center_align, thin_border) # Default 0 for BOXN HO
+            
+            format_cell(ws.cell(row=current_row, column=4), "E", bold_font, center_align, thin_border)
+            format_cell(ws.cell(row=current_row, column=5), data['HO']['E']['total'], normal_font, center_align, thin_border)
+            write_stations(ws, current_row, 6, data['HO']['E']['stations'])
+            
+            current_row += 1
+            
+            # 4. T/O Section
+            # T/O E
+            format_cell(ws.cell(row=current_row, column=1), "T/O", bold_font, center_align, thin_border)
+            format_cell(ws.cell(row=current_row, column=2), data['TO']['total'], normal_font, center_align, thin_border)
+            if class_name == 'BOXN':
+                format_cell(ws.cell(row=current_row, column=3), data['TO']['ph_total'], normal_font, center_align, thin_border)
+            else:
+                format_cell(ws.cell(row=current_row, column=3), data['TO']['empty_total'], normal_font, center_align, thin_border)
+            
+            format_cell(ws.cell(row=current_row, column=4), "E", bold_font, center_align, thin_border)
+            format_cell(ws.cell(row=current_row, column=5), data['TO']['E']['total'], normal_font, center_align, thin_border)
+            write_stations(ws, current_row, 6, data['TO']['E']['stations'])
+            current_row += 1
+            
+            # T/O PU
+            format_cell(ws.cell(row=current_row, column=4), "PU", bold_font, center_align, thin_border)
+            format_cell(ws.cell(row=current_row, column=5), data['TO']['PU']['total'], normal_font, center_align, thin_border)
+            write_stations(ws, current_row, 6, data['TO']['PU']['stations'])
+            current_row += 1
+            
+            # T/O B/P
+            format_cell(ws.cell(row=current_row, column=4), "B/P", bold_font, center_align, thin_border)
+            format_cell(ws.cell(row=current_row, column=5), data['TO']['B/P']['total'], normal_font, center_align, thin_border)
+            write_stations(ws, current_row, 6, data['TO']['B/P']['stations'])
+            current_row += 1
+            
+            # T/O PH (Only for BOXN)
+            if class_name == 'BOXN':
+                format_cell(ws.cell(row=current_row, column=4), "PH", bold_font, center_align, thin_border)
+                format_cell(ws.cell(row=current_row, column=5), data['TO']['PH']['total'], normal_font, center_align, thin_border)
+                write_stations(ws, current_row, 6, data['TO']['PH']['stations'])
+                current_row += 1
+            
+            # Add a spacer row between tables
+            current_row += 1
+            
+        return current_row
+

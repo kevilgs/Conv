@@ -6,7 +6,7 @@ from services.wagon_classifier import WagonClassifier
 class CSVProcessor:
     def __init__(self):
         self.required_columns = [
-            'ZONE TO', 'IC STTN', 'TAKEN OVER ZONE FROM','TAKEN OVER STTN TO', 'TAKEN OVER L/E',
+            'ZONE TO', 'IC STTN', 'TAKEN OVER ZONE FROM','TAKEN OVER STTN TO', 'TAKEN OVER ZONE TO', 'TAKEN OVER L/E',
             'TAKEN OVER TYPE', 'TAKEN OVER LOCO', 'TAKEN OVER LOCO TYPE',
             'HANDED OVER ZONE TO', 'HANDED OVER STTN TO', 'HANDED OVER L/E',
             'HANDED OVER TYPE', 'HANDED OVER LOCO', 'HANDED OVER LOCO TYPE'
@@ -58,7 +58,7 @@ class CSVProcessor:
                 df = pd.read_csv(file_path, skiprows=2)
                 df.columns = df.columns.str.strip()
                 columns_to_extract = [
-                    'ZONE FROM', 'STATION TO', 'LOAD L/E', 'LOAD TYPE', 'LOCO NO', 'LOCO TYPE', 'ZN-STTN',
+                    'ZONE FROM', 'STATION TO', 'ZONE TO', 'LOAD L/E', 'LOAD TYPE', 'LOCO NO', 'LOCO TYPE', 'ZN-STTN',
                     'ZONE FROM', 'STATION TO', 'LOAD L/E', 'LOAD TYPE', 'LOCO NO', 'LOCO TYPE'
                 ]
 
@@ -93,7 +93,7 @@ class CSVProcessor:
                 takenover_rename = {
                     old: new for old, new in zip(
                         takenover_cols,
-                        ['TAKEN OVER ZONE FROM', 'TAKEN OVER STTN TO', 'TAKEN OVER L/E', 'TAKEN OVER TYPE', 'TAKEN OVER LOCO', 'TAKEN OVER LOCO TYPE']
+                        ['TAKEN OVER ZONE FROM', 'TAKEN OVER STTN TO', 'TAKEN OVER ZONE TO', 'TAKEN OVER L/E', 'TAKEN OVER TYPE', 'TAKEN OVER LOCO', 'TAKEN OVER LOCO TYPE']
                     )
                 }
                 handedover_rename = {
@@ -118,7 +118,7 @@ class CSVProcessor:
 
                 # Now build the final DataFrame in the required order
                 final_columns = [
-                    'ZONE TO', 'IC STTN', 'TAKEN OVER ZONE FROM', 'TAKEN OVER STTN TO', 'TAKEN OVER L/E', 'TAKEN OVER TYPE', 'TAKEN OVER LOCO', 'TAKEN OVER LOCO TYPE',
+                    'ZONE TO', 'IC STTN', 'TAKEN OVER ZONE FROM', 'TAKEN OVER STTN TO', 'TAKEN OVER ZONE TO', 'TAKEN OVER L/E', 'TAKEN OVER TYPE', 'TAKEN OVER LOCO', 'TAKEN OVER LOCO TYPE',
                     'HANDED OVER ZONE TO', 'HANDED OVER STTN TO', 'HANDED OVER L/E', 'HANDED OVER TYPE', 'HANDED OVER LOCO', 'HANDED OVER LOCO TYPE'
                 ]
 
@@ -283,7 +283,7 @@ class CSVProcessor:
 
                 # --- Flexible extraction and renaming logic (same as process_csv) ---
                 columns_to_extract = [
-                    'ZONE FROM', 'STATION TO', 'LOAD L/E', 'LOAD TYPE', 'LOCO NO', 'LOCO TYPE', 'ZN-STTN',
+                    'ZONE FROM', 'STATION TO', 'ZONE TO', 'LOAD L/E', 'LOAD TYPE', 'LOCO NO', 'LOCO TYPE', 'ZN-STTN',
                     'ZONE FROM', 'STATION TO', 'LOAD L/E', 'LOAD TYPE', 'LOCO NO', 'LOCO TYPE'
                 ]
 
@@ -315,7 +315,7 @@ class CSVProcessor:
                 takenover_rename = {
                     old: new for old, new in zip(
                         takenover_cols,
-                        ['TAKEN OVER ZONE FROM', 'TAKEN OVER STTN TO', 'TAKEN OVER L/E', 'TAKEN OVER TYPE', 'TAKEN OVER LOCO', 'TAKEN OVER LOCO TYPE']
+                        ['TAKEN OVER ZONE FROM', 'TAKEN OVER STTN TO', 'TAKEN OVER ZONE TO', 'TAKEN OVER L/E', 'TAKEN OVER TYPE', 'TAKEN OVER LOCO', 'TAKEN OVER LOCO TYPE']
                     )
                 }
                 handedover_rename = {
