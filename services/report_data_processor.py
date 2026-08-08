@@ -160,7 +160,20 @@ class ReportDataProcessor:
 
         if not empties_data.empty:
             type_counts = Counter(empties_data['HANDED OVER TYPE'])
-            for wagon_type, count in type_counts.items():
+            
+            type_to_class = dict(zip(empties_data['HANDED OVER TYPE'], empties_data['HANDEDOVER CLASSIFICATION']))
+            def get_priority(wagon_class):
+                if wagon_class == 'JUMBO': return 1
+                if wagon_class in ['BOXN', 'BOX']: return 2
+                if wagon_class == 'BTPN': return 3
+                return 4
+                
+            sorted_types = sorted(
+                type_counts.items(),
+                key=lambda x: (get_priority(type_to_class.get(x[0], 'OTHERS')), x[0])
+            )
+            
+            for wagon_type, count in sorted_types:
                 if count == 1:
                     details['EMPTIES'].append(wagon_type)
                 else:
@@ -267,7 +280,20 @@ class ReportDataProcessor:
                                     (station_data['TAKENOVER CLASSIFICATION'] != 'CONT')]  # Exclude CONT
         if not empties_data.empty:
             type_counts = Counter(empties_data['TAKEN OVER TYPE'])
-            for wagon_type, count in type_counts.items():
+            
+            type_to_class = dict(zip(empties_data['TAKEN OVER TYPE'], empties_data['TAKENOVER CLASSIFICATION']))
+            def get_priority(wagon_class):
+                if wagon_class == 'JUMBO': return 1
+                if wagon_class in ['BOXN', 'BOX']: return 2
+                if wagon_class == 'BTPN': return 3
+                return 4
+                
+            sorted_types = sorted(
+                type_counts.items(),
+                key=lambda x: (get_priority(type_to_class.get(x[0], 'OTHERS')), x[0])
+            )
+            
+            for wagon_type, count in sorted_types:
                 if count == 1:
                     details['EMPTIES'].append(wagon_type)
                 else:
