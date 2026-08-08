@@ -510,8 +510,8 @@ class ReportDataProcessor:
         
         custom_data = {
             'JUMBO': {
-                'HO': {'total': 0, 'empty_total': 0, 'E': {'total': 0, 'stations': Counter()}},
-                'TO': {'total': 0, 'empty_total': 0, 'E': {'total': 0, 'stations': Counter()}, 'PU': {'total': 0, 'stations': Counter()}, 'B/P': {'total': 0, 'stations': Counter()}}
+                'HO': {'total': 0, 'empty_total': 0, 'E': {'total': 0, 'stations': {}}}, # dict for split logic
+                'TO': {'total': 0, 'empty_total': 0, 'E': {'total': 0, 'stations': {}}, 'PU': {'total': 0, 'stations': Counter()}, 'B/P': {'total': 0, 'stations': Counter()}}
             },
             'BOXN': {
                 'HO': {'total': 0, 'empty_total': 0, 'E': {'total': 0, 'stations': Counter()}},
@@ -536,7 +536,16 @@ class ReportDataProcessor:
                 for _, row in ho_e_df.iterrows():
                     ic_sttn = row['IC STTN (Copy)']
                     if not pd.isna(ic_sttn):
-                        custom_data[class_name]['HO']['E']['stations'][ic_sttn] += 1
+                        if class_name == 'JUMBO':
+                            wagon_type = str(row.get('HANDED OVER TYPE', '')).strip().upper()
+                            if ic_sttn not in custom_data[class_name]['HO']['E']['stations']:
+                                custom_data[class_name]['HO']['E']['stations'][ic_sttn] = {'bcn': 0, 'bcnhl': 0}
+                            if wagon_type == 'BCNHL':
+                                custom_data[class_name]['HO']['E']['stations'][ic_sttn]['bcnhl'] += 1
+                            else:
+                                custom_data[class_name]['HO']['E']['stations'][ic_sttn]['bcn'] += 1
+                        else:
+                            custom_data[class_name]['HO']['E']['stations'][ic_sttn] += 1
             
             # TO
             to_df = df[df['TAKENOVER CLASSIFICATION'] == search_class].copy()
@@ -551,7 +560,16 @@ class ReportDataProcessor:
                 for _, row in to_e_df.iterrows():
                     ic_sttn = row['IC STTN']
                     if not pd.isna(ic_sttn):
-                        custom_data[class_name]['TO']['E']['stations'][ic_sttn] += 1
+                        if class_name == 'JUMBO':
+                            wagon_type = str(row.get('TAKEN OVER TYPE', '')).strip().upper()
+                            if ic_sttn not in custom_data[class_name]['TO']['E']['stations']:
+                                custom_data[class_name]['TO']['E']['stations'][ic_sttn] = {'bcn': 0, 'bcnhl': 0}
+                            if wagon_type == 'BCNHL':
+                                custom_data[class_name]['TO']['E']['stations'][ic_sttn]['bcnhl'] += 1
+                            else:
+                                custom_data[class_name]['TO']['E']['stations'][ic_sttn]['bcn'] += 1
+                        else:
+                            custom_data[class_name]['TO']['E']['stations'][ic_sttn] += 1
                 
                 to_l_df = to_df[to_df['TAKEN OVER L/E'] == 'L']
                 for _, row in to_l_df.iterrows():
@@ -574,8 +592,10 @@ class ReportDataProcessor:
                         custom_data[class_name]['TO']['B/P']['stations'][(ic_sttn, sttn_to)] += 1
 
         # Convert Counter keys to final formatted strings arrays
-        def format_stations_e(stations_counter):
-            return [f"{ic}[{count}]" for ic, count in stations_counter.items()]
+        def format_stations_e(stations_data, c_name):
+            if c_name == 'JUMBO':
+                return [f"{ic}[{counts['bcn']}+{counts['bcnhl']}]" for ic, counts in stations_data.items()]
+            return [f"{ic}[{count}]" for ic, count in stations_data.items()]
             
         def format_stations_other(stations_counter):
             ic_groups = {}
@@ -587,8 +607,8 @@ class ReportDataProcessor:
             return [f"{ic}[{', '.join(sttns)}]" for ic, sttns in ic_groups.items()]
             
         for c in custom_data:
-            custom_data[c]['HO']['E']['stations'] = format_stations_e(custom_data[c]['HO']['E']['stations'])
-            custom_data[c]['TO']['E']['stations'] = format_stations_e(custom_data[c]['TO']['E']['stations'])
+            custom_data[c]['HO']['E']['stations'] = format_stations_e(custom_data[c]['HO']['E']['stations'], c)
+            custom_data[c]['TO']['E']['stations'] = format_stations_e(custom_data[c]['TO']['E']['stations'], c)
             custom_data[c]['TO']['PU']['stations'] = format_stations_other(custom_data[c]['TO']['PU']['stations'])
             custom_data[c]['TO']['B/P']['stations'] = format_stations_other(custom_data[c]['TO']['B/P']['stations'])
             if c == 'BOXN':
