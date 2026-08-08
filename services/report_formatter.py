@@ -352,6 +352,8 @@ class ReportFormatter:
         
         from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
         from openpyxl.utils import get_column_letter
+        from openpyxl.cell.rich_text import TextBlock, CellRichText
+        from openpyxl.cell.text import InlineFont
 
         # Bold fonts
         bold_font = Font(name='Arial', size=10, bold=True)
@@ -359,41 +361,69 @@ class ReportFormatter:
         center_align = Alignment(horizontal='center', vertical='center')
         left_align = Alignment(horizontal='left', vertical='center')
         thin_border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
+        
+        bold_inline = InlineFont(b=True, sz=9, rFont='Arial')
+        normal_inline = InlineFont(b=False, sz=9, rFont='Arial')
 
         def format_cell(cell, value, font, align, border):
             cell.value = value
-            cell.font = font
+            if not isinstance(value, CellRichText):
+                cell.font = font
             cell.alignment = align
             cell.border = border
             cell.fill = self.white_fill
 
+        def apply_border_to_range(ws, min_row, min_col, max_row, max_col, border):
+            """Helper to apply border to all cells in a merged range and set background"""
+            for r in range(min_row, max_row + 1):
+                for c in range(min_col, max_col + 1):
+                    cell = ws.cell(row=r, column=c)
+                    cell.border = border
+                    cell.fill = self.white_fill
+
         def write_stations(ws, row, col_start_idx, stations_list):
-            """Write stations horizontally starting from col_start_idx"""
-            col_idx = col_start_idx
-            for val in stations_list:
-                col_letter = get_column_letter(col_idx)
-                format_cell(ws[f'{col_letter}{row}'], val, normal_font, left_align, thin_border)
-                ws.column_dimensions[col_letter].width = max(ws.column_dimensions[col_letter].width, len(val) + 2)
-                col_idx += 1
-            return col_idx
+            """Write stations as a single comma-separated string in a horizontally merged cell, with bold IC STTN"""
+            elements = []
+            for i, sttn_str in enumerate(stations_list):
+                if '[' in sttn_str:
+                    ic_part, rest = sttn_str.split('[', 1)
+                    rest = '[' + rest
+                    elements.append(TextBlock(bold_inline, ic_part))
+                    if i < len(stations_list) - 1:
+                        rest += ", "
+                    elements.append(TextBlock(normal_inline, rest))
+                else:
+                    if i < len(stations_list) - 1:
+                        sttn_str += ", "
+                    elements.append(TextBlock(normal_inline, sttn_str))
+                    
+            val = CellRichText(*elements) if elements else ""
+            end_col = 12  # Merge up to column 12
+            
+            ws.merge_cells(start_row=row, start_column=col_start_idx, end_row=row, end_column=end_col)
+            apply_border_to_range(ws, row, col_start_idx, row, end_col, thin_border)
+            
+            cell = ws.cell(row=row, column=col_start_idx)
+            format_cell(cell, val, normal_font, left_align, thin_border)
+            cell.alignment = Alignment(horizontal='left', vertical='center', wrap_text=True)
 
         for class_name in ['JUMBO', 'BOXN', 'BTPN']:
             data = custom_data[class_name]
             
             # 1. Main Title Row
-            ws.merge_cells(start_row=current_row, start_column=1, end_row=current_row, end_column=10)
+            ws.merge_cells(start_row=current_row, start_column=1, end_row=current_row, end_column=12)
+            apply_border_to_range(ws, current_row, 1, current_row, 12, thin_border)
             format_cell(ws.cell(row=current_row, column=1), class_name, bold_font, center_align, thin_border)
-            # Apply border to the rest of the merged cells
-            for col in range(2, 11):
-                ws.cell(row=current_row, column=col).border = thin_border
             current_row += 1
             
             # 2. Header Row (TOTAL and EMPTY/PH)
+            apply_border_to_range(ws, current_row, 1, current_row, 12, thin_border)
             format_cell(ws.cell(row=current_row, column=2), "TOTAL", bold_font, center_align, thin_border)
             format_cell(ws.cell(row=current_row, column=3), "EMPTY", bold_font, center_align, thin_border)
             current_row += 1
             
             # 3. H/O Row
+            apply_border_to_range(ws, current_row, 1, current_row, 12, thin_border)
             format_cell(ws.cell(row=current_row, column=1), "H/O", bold_font, center_align, thin_border)
             format_cell(ws.cell(row=current_row, column=2), data['HO']['total'], normal_font, center_align, thin_border)
             format_cell(ws.cell(row=current_row, column=3), data['HO']['empty_total'], normal_font, center_align, thin_border)
@@ -405,16 +435,27 @@ class ReportFormatter:
             current_row += 1
             
             # 4. T/O Section
+            to_start_row = current_row
+            num_to_rows = 4 if class_name == 'BOXN' else 3
+            to_end_row = to_start_row + num_to_rows - 1
+            
+            # Initialize borders for the whole block
+            apply_border_to_range(ws, to_start_row, 1, to_end_row, 12, thin_border)
+            
+            # Merge and populate Col 1 (T/O)
+            ws.merge_cells(start_row=to_start_row, start_column=1, end_row=to_end_row, end_column=1)
+            format_cell(ws.cell(row=to_start_row, column=1), "T/O", bold_font, center_align, thin_border)
+            
+            # Merge and populate Col 2 (TOTAL)
+            ws.merge_cells(start_row=to_start_row, start_column=2, end_row=to_end_row, end_column=2)
+            format_cell(ws.cell(row=to_start_row, column=2), data['TO']['total'], normal_font, center_align, thin_border)
+            
+            # Merge and populate Col 3 (EMPTY/PH)
+            ws.merge_cells(start_row=to_start_row, start_column=3, end_row=to_end_row, end_column=3)
+            empty_val = data['TO']['ph_total'] if class_name == 'BOXN' else data['TO']['empty_total']
+            format_cell(ws.cell(row=to_start_row, column=3), empty_val, normal_font, center_align, thin_border)
+            
             # T/O E
-            format_cell(ws.cell(row=current_row, column=1), "T/O", bold_font, center_align, thin_border)
-            format_cell(ws.cell(row=current_row, column=2), data['TO']['total'], normal_font, center_align, thin_border)
-            
-            # Put the powerhouse value there in the empty column for BOXN during T/O
-            if class_name == 'BOXN':
-                format_cell(ws.cell(row=current_row, column=3), data['TO']['ph_total'], normal_font, center_align, thin_border)
-            else:
-                format_cell(ws.cell(row=current_row, column=3), data['TO']['empty_total'], normal_font, center_align, thin_border)
-            
             format_cell(ws.cell(row=current_row, column=4), "E", bold_font, center_align, thin_border)
             format_cell(ws.cell(row=current_row, column=5), data['TO']['E']['total'], normal_font, center_align, thin_border)
             write_stations(ws, current_row, 6, data['TO']['E']['stations'])

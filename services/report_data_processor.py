@@ -578,7 +578,13 @@ class ReportDataProcessor:
             return [f"{ic}[{count}]" for ic, count in stations_counter.items()]
             
         def format_stations_other(stations_counter):
-            return [f"{ic}[{sttn}[{count}]]" for (ic, sttn), count in stations_counter.items()]
+            ic_groups = {}
+            for (ic, sttn), count in stations_counter.items():
+                if ic not in ic_groups:
+                    ic_groups[ic] = []
+                ic_groups[ic].append(f"{sttn} - {count}")
+                
+            return [f"{ic}[{', '.join(sttns)}]" for ic, sttns in ic_groups.items()]
             
         for c in custom_data:
             custom_data[c]['HO']['E']['stations'] = format_stations_e(custom_data[c]['HO']['E']['stations'])
