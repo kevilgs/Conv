@@ -620,8 +620,8 @@ class ReportDataProcessor:
         # Convert Counter keys to final formatted strings arrays
         def format_stations_e(stations_data, c_name):
             if c_name == 'JUMBO':
-                return [f"{ic}[{counts['bcn']}+{counts['bcnhl']}]" for ic, counts in stations_data.items()]
-            return [f"{ic}[{count}]" for ic, count in stations_data.items()]
+                return [f"{ic} - [{counts['bcn']}+{counts['bcnhl']}]" for ic, counts in stations_data.items()]
+            return [f"{ic} - [{count}]" for ic, count in stations_data.items()]
             
         def format_stations_other(stations_counter):
             ic_groups = {}
@@ -630,7 +630,7 @@ class ReportDataProcessor:
                     ic_groups[ic] = []
                 ic_groups[ic].append(f"{sttn} - {count}")
                 
-            return [f"{ic}[{', '.join(sttns)}]" for ic, sttns in ic_groups.items()]
+            return [f"{ic} - [{', '.join(sttns)}]" for ic, sttns in ic_groups.items()]
             
         for c in custom_data:
             custom_data[c]['HO']['E']['stations'] = format_stations_e(custom_data[c]['HO']['E']['stations'], c)

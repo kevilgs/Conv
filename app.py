@@ -1,10 +1,20 @@
+import sys
+import os
 from flask import Flask, render_template, redirect, url_for
 from config import Config
 import webbrowser
 import threading
 
 def create_app():
-    app = Flask(__name__)
+    if getattr(sys, 'frozen', False):
+        # Running as PyInstaller executable
+        template_folder = os.path.join(sys._MEIPASS, 'templates')
+        static_folder = os.path.join(sys._MEIPASS, 'static')
+        app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
+    else:
+        # Running normally
+        app = Flask(__name__)
+        
     app.config.from_object(Config)
     
     # Initialize directories

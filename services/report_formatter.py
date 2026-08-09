@@ -411,7 +411,14 @@ class ReportFormatter:
             """Write stations as a single comma-separated string in a horizontally merged cell, with bold IC STTN"""
             elements = []
             for i, sttn_str in enumerate(stations_list):
-                if '[' in sttn_str:
+                if ' - [' in sttn_str:
+                    ic_part, rest = sttn_str.split(' - [', 1)
+                    rest = ' - [' + rest
+                    elements.append(TextBlock(bold_inline, ic_part))
+                    if i < len(stations_list) - 1:
+                        rest += ", "
+                    elements.append(TextBlock(normal_inline, rest))
+                elif '[' in sttn_str:
                     ic_part, rest = sttn_str.split('[', 1)
                     rest = '[' + rest
                     elements.append(TextBlock(bold_inline, ic_part))
