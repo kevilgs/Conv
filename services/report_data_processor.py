@@ -215,11 +215,18 @@ class ReportDataProcessor:
         # print(f"Takenover L/E values: {station_data['TAKEN OVER L/E'].unique()}")
         
         for classification in self.detail_classifications:
-            # Filter by classification and L/E = "L"
-            filtered_data = station_data[
-                (station_data['TAKENOVER CLASSIFICATION'] == classification) &
-                (station_data['TAKEN OVER L/E'] == 'L')
-            ]
+            if classification == 'CONT':
+                # For CONT, include both L and E
+                filtered_data = station_data[
+                    (station_data['TAKENOVER CLASSIFICATION'] == classification) &
+                    (station_data['TAKEN OVER L/E'].isin(['L', 'E']))
+                ]
+            else:
+                # For others, only L
+                filtered_data = station_data[
+                    (station_data['TAKENOVER CLASSIFICATION'] == classification) &
+                    (station_data['TAKEN OVER L/E'] == 'L')
+                ]
             
             # print(f"For {classification}: found {len(filtered_data)} rows")
             

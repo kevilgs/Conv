@@ -30,49 +30,30 @@ class FinalReportGenerator:
             handedover_stations = list(handedover_data.keys())
             takenover_stations = list(takenover_data.keys())
             
-            # Complete fix: Maintain all zone ordering while ensuring SAUN before SAUS
-            def maintain_zone_ordering(stations):
-                # Zone order
-                zone_order = ['CR', 'WC', 'NW', 'DFCR']
-                
-                # Stations within each zone (with SAUN before SAUS in DFCR)
-                zone_stations = {
-                    'CR': ['BSR', 'JL', 'KNW'],
-                    'WC': ['SHRN', 'NAD', 'MKC', 'MTA', 'CNA'],
-                    'NW': ['BEC', 'AII', 'HMT', 'BLDI', 'PNU'],
-                    'DFCR': ['BHU', 'CECC', 'GGM', 'MSH', 'SAUN', 'SAUS', 'MPR', 'GTX', 'PAO', 'NOL', 'BHET', 'SAH', 'SJN']
-                }
-                
-                # Flatten all expected stations in order
-                all_ordered_stations = []
-                for zone in zone_order:
-                    all_ordered_stations.extend(zone_stations[zone])
-                
-                # Order actual stations based on expected order
-                ordered_stations = []
-                for station in all_ordered_stations:
-                    if station in stations:
-                        ordered_stations.append(station)
-                
-                # Add any stations not in our ordering at the end
-                for station in stations:
-                    if station not in ordered_stations:
-                        ordered_stations.append(station)
-                
-                return ordered_stations
+            BASE_STATION_ORDER = [
+                'BSR', 'JL', 'KNW', 'SHRN', 'NAD', 'MKC', 'MTA', 'CNA', 'BEC', 
+                'AII', 'HMT', 'BLDI', 'PNU', 'BHU', 'CECC', 'GGM', 'MSH', 'SAUN', 
+                'SUBTOTAL', 
+                'SAUS', 'MPR', 'GTX', 'PAO', 'NOL', 'BHET', 'SAH', 'SJN'
+            ]
             
-            # Fix station order
-            handedover_stations = maintain_zone_ordering(handedover_stations)
-            takenover_stations = maintain_zone_ordering(takenover_stations)
+            all_found_stations = set(handedover_stations + takenover_stations)
+            unified_stations = []
+            for station in BASE_STATION_ORDER:
+                unified_stations.append(station)
+                
+            for station in sorted(list(all_found_stations)):
+                if station not in unified_stations and station not in ['SUBTOTAL', 'GRAND TOTAL']:
+                    unified_stations.append(station)
             
             # Populate data starting from row 5
-            last_data_row = self._populate_report_data(ws, handedover_data, takenover_data, handedover_stations, takenover_stations)
+            last_data_row = self._populate_report_data(ws, handedover_data, takenover_data, unified_stations, processor)
             
-            # Calculate and add totals ONLY at the end (not in the loop)
-            totals_handed = processor.calculate_totals(handedover_data, handedover_stations, is_handedover=True)
-            totals_taken = processor.calculate_totals(takenover_data, takenover_stations, is_handedover=False)
+            # Calculate and add totals ONLY at the end
+            totals_handed = processor.calculate_totals(handedover_data, unified_stations, is_handedover=True)
+            totals_taken = processor.calculate_totals(takenover_data, unified_stations, is_handedover=False)
             
-            # Add GRAND TOTAL row (remove SUBTOTAL for now)
+            # Add GRAND TOTAL row
             grand_total_row = last_data_row + 1
             self._add_total_row(ws, grand_total_row, totals_handed, totals_taken, "GRAND TOTAL")
             
@@ -96,88 +77,92 @@ class FinalReportGenerator:
         except Exception as e:
             return None, f"Error generating final report: {str(e)}"
     
-    def _populate_report_data(self, ws, handedover_data, takenover_data, handedover_stations, takenover_stations):
+    def _populate_report_data(self, ws, handedover_data, takenover_data, unified_stations, processor):
         """Populate the report with actual data preserving order"""
         current_row = 5  # Start from row 5 (after headers)
         
-        # Get the maximum length to ensure all stations are covered
-        max_stations = max(len(handedover_stations), len(takenover_stations))
-        
-        for i in range(max_stations):
+        for station in unified_stations:
+            if station == 'SUBTOTAL':
+                idx = unified_stations.index('SUBTOTAL')
+                subtotal_stations = unified_stations[:idx]
+                
+                totals_handed = processor.calculate_totals(handedover_data, subtotal_stations, is_handedover=True)
+                totals_taken = processor.calculate_totals(takenover_data, subtotal_stations, is_handedover=False)
+                self._add_total_row(ws, current_row, totals_handed, totals_taken, "SUBTOTAL")
+                current_row += 1
+                continue
+                
             # Calculate how many rows this station group will need
             max_details_length = 1  # At least 1 row for the main station
             
             # Check handedover details
-            if i < len(handedover_stations):
-                station = handedover_stations[i]
-                if station in handedover_data:
-                    details = handedover_data[station]['details']
-                    for classification in ['JUMBO', 'BOXN', 'BTPN', 'BTPG', 'SHRA', 'CONT', 'OTHERS', 'EMPTIES']:  # Add 'EMPTIES'
-                        max_details_length = max(max_details_length, len(details[classification]))
+            if station in handedover_data:
+                details = handedover_data[station]['details']
+                for classification in ['JUMBO', 'BOXN', 'BTPN', 'BTPG', 'SHRA', 'CONT', 'OTHERS', 'EMPTIES']:
+                    max_details_length = max(max_details_length, len(details[classification]))
             
             # Check takenover details
-            if i < len(takenover_stations):
-                station = takenover_stations[i]
-                if station in takenover_data:
-                    details = takenover_data[station]['details']
-                    for classification in ['JUMBO', 'BOXN', 'BTPN', 'BTPG', 'SHRA', 'CONT', 'OTHERS', 'EMPTIES']:  # Add 'EMPTIES'
-                        max_details_length = max(max_details_length, len(details[classification]))
+            if station in takenover_data:
+                details = takenover_data[station]['details']
+                for classification in ['JUMBO', 'BOXN', 'BTPN', 'BTPG', 'SHRA', 'CONT', 'OTHERS', 'EMPTIES']:
+                    max_details_length = max(max_details_length, len(details[classification]))
+                    
+            # Dummy details for missing data
+            dummy_details = {
+                'NO_OF_TRAINS': 0, 'DIESEL': 0, 'JUMBO_LE': '0+0', 'BOXN_LE': '0+0', 'BTPN_LE': '0+0',
+                'BOXN_PH_OTH': '0+0', 'CONT_COUNT': '0+0',
+                'JUMBO': [], 'BOXN': [], 'BTPN': [], 'BTPG': [], 'SHRA': [], 'CONT': [], 'OTHERS': [], 'EMPTIES': []
+            }
             
             # Populate HANDEDOVER section data
-            if i < len(handedover_stations):
-                station = handedover_stations[i]
-                if station in handedover_data:
-                    handed_info = handedover_data[station]
-                    
-                    # Main station info in first row
-                    ws[f'A{current_row}'] = handed_info['ic_sttn']
+            handed_info = handedover_data.get(station, {'ic_sttn': station, 'details': dummy_details})
+            
+            # Main station info in first row
+            ws[f'A{current_row}'] = handed_info['ic_sttn']
 
-                    # L+E counts
-                    details = handed_info['details']  # Move this line up
-                    ws[f'B{current_row}'] = details['NO_OF_TRAINS']
-                    ws[f'C{current_row}'] = details['DIESEL']
-                    ws[f'D{current_row}'] = details['JUMBO_LE']  # JUMBO L+E
-                    ws[f'E{current_row}'] = details['BOXN_LE']   # BOXN L+E  
-                    ws[f'F{current_row}'] = details['BTPN_LE']   # BTPN L+E
-                    ws[f'G{current_row}'] = details['CONT_COUNT']      # CONT
-                    
-                    # Details section - put each station in separate rows vertically
-                    self._populate_classification_vertically(ws, current_row, 'H', details['JUMBO'])   # JUMBO
-                    self._populate_classification_vertically(ws, current_row, 'I', details['BOXN'])    # BOXN
-                    self._populate_classification_vertically(ws, current_row, 'J', details['BTPN'])
-                    self._populate_classification_vertically(ws, current_row, 'K', details['BTPG'])    # Add this line
-                    self._populate_classification_vertically(ws, current_row, 'M', details['SHRA'])    # SHRA
-                    self._populate_classification_vertically(ws, current_row, 'L', details['CONT'])    # Add this line
-                    self._populate_classification_vertically(ws, current_row, 'N', details['OTHERS'])    # Handedover
-                    self._populate_classification_vertically(ws, current_row, 'O', details['EMPTIES'])  # EMPTIES
+            # L+E counts
+            details = handed_info['details']
+            ws[f'B{current_row}'] = details['NO_OF_TRAINS']
+            ws[f'C{current_row}'] = details['DIESEL']
+            ws[f'D{current_row}'] = details['JUMBO_LE']
+            ws[f'E{current_row}'] = details['BOXN_LE'] 
+            ws[f'F{current_row}'] = details['BTPN_LE'] 
+            ws[f'G{current_row}'] = details['CONT_COUNT']
+            
+            # Details section - put each station in separate rows vertically
+            self._populate_classification_vertically(ws, current_row, 'H', details['JUMBO'])
+            self._populate_classification_vertically(ws, current_row, 'I', details['BOXN'])
+            self._populate_classification_vertically(ws, current_row, 'J', details['BTPN'])
+            self._populate_classification_vertically(ws, current_row, 'K', details['BTPG'])
+            self._populate_classification_vertically(ws, current_row, 'M', details['SHRA'])
+            self._populate_classification_vertically(ws, current_row, 'L', details['CONT'])
+            self._populate_classification_vertically(ws, current_row, 'N', details['OTHERS'])
+            self._populate_classification_vertically(ws, current_row, 'O', details['EMPTIES'])
             
             # Populate TAKENOVER section data
-            if i < len(takenover_stations):
-                station = takenover_stations[i]
-                if station in takenover_data:
-                    taken_info = takenover_data[station]
-                    
-                    # Main station info in first row
-                    ws[f'P{current_row}'] = taken_info['ic_sttn']
+            taken_info = takenover_data.get(station, {'ic_sttn': station, 'details': dummy_details})
+            
+            # Main station info in first row
+            ws[f'P{current_row}'] = taken_info['ic_sttn']
 
-                    # L+E counts (exclude BOXN)
-                    details = taken_info['details']  # Move this line up
-                    ws[f'Q{current_row}'] = details['NO_OF_TRAINS']
-                    ws[f'R{current_row}'] = details['DIESEL']
-                    ws[f'S{current_row}'] = details['JUMBO_LE']  # JUMBO L+E
-                    ws[f'T{current_row}'] = details['BOXN_PH_OTH']
-                    ws[f'U{current_row}'] = details['BTPN_LE']   # BTPN L+E
-                    ws[f'V{current_row}'] = details['CONT_COUNT'] 
-                    
-                    # Details section - put each station in separate rows vertically
-                    self._populate_classification_vertically(ws, current_row, 'W', details['JUMBO'])   # JUMBO
-                    self._populate_classification_vertically(ws, current_row, 'X', details['BOXN'])    # BOXN
-                    self._populate_classification_vertically(ws, current_row, 'Y', details['BTPN'])    # BTPN
-                    self._populate_classification_vertically(ws, current_row, 'Z', details['BTPG'])    # Add this line
-                    self._populate_classification_vertically(ws, current_row, 'AB', details['SHRA'])   # SHRA
-                    self._populate_classification_vertically(ws, current_row, 'AA', details['CONT'])   # Add this line
-                    self._populate_classification_vertically(ws, current_row, 'AC', details['OTHERS'])   # Takenover
-                    self._populate_classification_vertically(ws, current_row, 'AD', details['EMPTIES'])  # EMPTIES
+            # L+E counts
+            details = taken_info['details']
+            ws[f'Q{current_row}'] = details['NO_OF_TRAINS']
+            ws[f'R{current_row}'] = details['DIESEL']
+            ws[f'S{current_row}'] = details['JUMBO_LE']
+            ws[f'T{current_row}'] = details.get('BOXN_PH_OTH', '0+0')
+            ws[f'U{current_row}'] = details['BTPN_LE']
+            ws[f'V{current_row}'] = details['CONT_COUNT'] 
+            
+            # Details section - put each station in separate rows vertically
+            self._populate_classification_vertically(ws, current_row, 'W', details['JUMBO'])
+            self._populate_classification_vertically(ws, current_row, 'X', details['BOXN'])
+            self._populate_classification_vertically(ws, current_row, 'Y', details['BTPN'])
+            self._populate_classification_vertically(ws, current_row, 'Z', details['BTPG'])
+            self._populate_classification_vertically(ws, current_row, 'AB', details['SHRA'])
+            self._populate_classification_vertically(ws, current_row, 'AA', details['CONT'])
+            self._populate_classification_vertically(ws, current_row, 'AC', details['OTHERS'])
+            self._populate_classification_vertically(ws, current_row, 'AD', details['EMPTIES'])
             
             # Apply formatting to all rows used by this station group
             station_start_row = current_row
@@ -187,27 +172,14 @@ class FinalReportGenerator:
                 self._format_data_row(ws, current_row + row_offset)
 
             # Apply station-specific formatting with borders and merging
-            has_handedover = i < len(handedover_stations)
-            has_takenover = i < len(takenover_stations)
-            self.formatter.apply_station_group_formatting(ws, station_start_row, station_end_row, has_handedover, has_takenover)
+            self.formatter.apply_station_group_formatting(ws, station_start_row, station_end_row, True, True)
 
             # Apply special formatting to IC STTN and NO OF TRAINS cells
-            self.formatter.format_station_and_trains_cells(ws, current_row, has_handedover, has_takenover)
+            self.formatter.format_station_and_trains_cells(ws, current_row, True, True)
 
             # Move to next station group
             current_row += max_details_length
 
-            if i < len(handedover_stations) and handedover_stations[i] == "SAUN":
-                saun_index = handedover_stations.index("SAUN") + 1
-                handed_stations_upto_saun = handedover_stations[:saun_index]
-                taken_stations_upto_saun = takenover_stations[:min(saun_index, len(takenover_stations))]
-    
-                processor = ReportDataProcessor()
-                totals_handed = processor.calculate_totals(handedover_data, handed_stations_upto_saun, is_handedover=True)
-                totals_taken = processor.calculate_totals(takenover_data, taken_stations_upto_saun, is_handedover=False)
-    
-                self._add_total_row(ws, current_row, totals_handed, totals_taken, "SUBTOTAL")
-                current_row += 1
 
         # Return the last row used
         return current_row - 1  # Return last data row
