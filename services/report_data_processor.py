@@ -637,12 +637,15 @@ class ReportDataProcessor:
             
         def format_stations_other(stations_counter):
             ic_groups = {}
+            ic_totals = {}
             for (ic, sttn), count in stations_counter.items():
                 if ic not in ic_groups:
                     ic_groups[ic] = []
+                    ic_totals[ic] = 0
                 ic_groups[ic].append(f"{sttn} - {count}")
+                ic_totals[ic] += count
                 
-            return [f"{ic} - [{', '.join(sttns)}]" for ic, sttns in ic_groups.items()]
+            return [f"{ic} - ({ic_totals[ic]}) [{', '.join(sttns)}]" for ic, sttns in ic_groups.items()]
             
         ph_aggregate = Counter()
         for (ic, sttn), count in custom_data['BOXN']['TO']['PH']['stations'].items():
