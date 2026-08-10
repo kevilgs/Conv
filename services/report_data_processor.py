@@ -156,9 +156,10 @@ class ReportDataProcessor:
         empties_data = station_data[
             (station_data['HANDED OVER L/E'] == 'E') & 
             (station_data['HANDEDOVER CLASSIFICATION'] != 'CONT')  # Exclude CONT
-            ]
+        ].copy()
 
         if not empties_data.empty:
+            empties_data['HANDED OVER TYPE'] = empties_data['HANDED OVER TYPE'].replace({'BCNAHSM1': 'BCN', 'BCNAHSM2': 'BCN'})
             type_counts = Counter(empties_data['HANDED OVER TYPE'])
             
             type_to_class = dict(zip(empties_data['HANDED OVER TYPE'], empties_data['HANDEDOVER CLASSIFICATION']))
@@ -283,9 +284,13 @@ class ReportDataProcessor:
                         details['OTHERS'].append(f"{classification}[{sttn}]-{count}")
         
         # Calculate EMPTIES - group by TAKEN OVER TYPE with L/E = E
-        empties_data = station_data[(station_data['TAKEN OVER L/E'] == 'E') &
-                                    (station_data['TAKENOVER CLASSIFICATION'] != 'CONT')]  # Exclude CONT
+        empties_data = station_data[
+            (station_data['TAKEN OVER L/E'] == 'E') &
+            (station_data['TAKENOVER CLASSIFICATION'] != 'CONT')
+        ].copy()
+        
         if not empties_data.empty:
+            empties_data['TAKEN OVER TYPE'] = empties_data['TAKEN OVER TYPE'].replace({'BCNAHSM1': 'BCN', 'BCNAHSM2': 'BCN'})
             type_counts = Counter(empties_data['TAKEN OVER TYPE'])
             
             type_to_class = dict(zip(empties_data['TAKEN OVER TYPE'], empties_data['TAKENOVER CLASSIFICATION']))
