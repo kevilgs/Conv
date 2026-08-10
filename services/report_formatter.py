@@ -518,3 +518,24 @@ class ReportFormatter:
             
         return current_row
 
+    def create_ph_aggregate_row(self, ws, start_row, ph_string):
+        """Create a separate row for aggregated PH data"""
+        bold_font = Font(name='Arial', size=10, bold=True)
+        normal_font = Font(name='Arial', size=9)
+        
+        def format_cell(cell, value, font, alignment, border):
+            cell.value = value
+            cell.font = font
+            cell.alignment = alignment
+            cell.border = border
+            cell.fill = self.white_fill
+            
+        format_cell(ws.cell(row=start_row, column=1), "PH", bold_font, self.center_align, self.thin_border)
+        format_cell(ws.cell(row=start_row, column=2), ph_string, normal_font, self.left_align, self.thin_border)
+        
+        ws.merge_cells(start_row=start_row, start_column=2, end_row=start_row, end_column=12)
+        
+        for c in range(2, 13):
+            ws.cell(row=start_row, column=c).border = self.thin_border
+            
+        return start_row + 2

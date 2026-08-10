@@ -632,7 +632,12 @@ class ReportDataProcessor:
                 
             return [f"{ic} - [{', '.join(sttns)}]" for ic, sttns in ic_groups.items()]
             
-        for c in custom_data:
+        ph_aggregate = Counter()
+        for (ic, sttn), count in custom_data['BOXN']['TO']['PH']['stations'].items():
+            ph_aggregate[sttn] += count
+        custom_data['PH_AGGREGATE'] = ", ".join([f"{sttn} - ({count})" for sttn, count in ph_aggregate.items()])
+            
+        for c in ['JUMBO', 'BOXN', 'BTPN']:
             custom_data[c]['HO']['E']['stations'] = format_stations_e(custom_data[c]['HO']['E']['stations'], c)
             custom_data[c]['TO']['E']['stations'] = format_stations_e(custom_data[c]['TO']['E']['stations'], c)
             custom_data[c]['TO']['PU']['stations'] = format_stations_other(custom_data[c]['TO']['PU']['stations'])

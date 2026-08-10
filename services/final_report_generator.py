@@ -82,7 +82,10 @@ class FinalReportGenerator:
             
             # Calculate custom data and render custom breakdown table
             custom_data = processor.calculate_custom_table_data(df)
-            self.formatter.create_custom_breakdown_table(ws, stock_table_end_row, custom_data)
+            custom_table_end_row = self.formatter.create_custom_breakdown_table(ws, stock_table_end_row, custom_data)
+            
+            if 'PH_AGGREGATE' in custom_data and custom_data['PH_AGGREGATE']:
+                self.formatter.create_ph_aggregate_row(ws, custom_table_end_row + 1, custom_data['PH_AGGREGATE'])
             
             # Save file
             output_filename = self._generate_output_filename(original_filename)
