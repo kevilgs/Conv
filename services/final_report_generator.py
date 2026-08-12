@@ -211,24 +211,34 @@ class FinalReportGenerator:
             cell.fill = self.formatter.white_fill
     
     def _add_total_row(self, ws, current_row, totals_handed, totals_taken, label):
-        """Add a total row with calculated totals"""
+        """Add a total row with dynamic Excel formulas"""
+        
+        def make_sum_formula(col, sep):
+            rng = f"{col}5:{col}{current_row-1}"
+            left = f'SUMPRODUCT(($A$5:$A${current_row-1}<>"SUBTOTAL")*IFERROR(VALUE(LEFT({rng},FIND("{sep}",{rng})-1)),IFERROR(VALUE({rng}),0)))'
+            right = f'SUMPRODUCT(($A$5:$A${current_row-1}<>"SUBTOTAL")*IFERROR(VALUE(MID({rng},FIND("{sep}",{rng})+1,10)),0))'
+            return f'={left} & "{sep}" & {right}'
+            
+        def make_simple_sum(col):
+            return f'=SUMIF($A$5:$A${current_row-1}, "<>SUBTOTAL", {col}5:{col}{current_row-1})'
+
         # HANDEDOVER totals
         ws[f'A{current_row}'] = label
-        ws[f'B{current_row}'] = f"{totals_handed['NO_OF_TRAINS'][0]}/{totals_handed['NO_OF_TRAINS'][1]}"
-        ws[f'C{current_row}'] = totals_handed['DIESEL']
-        ws[f'D{current_row}'] = f"{totals_handed['JUMBO_LE'][0]}+{totals_handed['JUMBO_LE'][1]}"
-        ws[f'E{current_row}'] = f"{totals_handed['BOXN_LE'][0]}+{totals_handed['BOXN_LE'][1]}"
-        ws[f'F{current_row}'] = f"{totals_handed['BTPN_LE'][0]}+{totals_handed['BTPN_LE'][1]}"
-        ws[f'G{current_row}'] = totals_handed['CONT']
+        ws[f'B{current_row}'] = make_sum_formula('B', '/')
+        ws[f'C{current_row}'] = make_simple_sum('C')
+        ws[f'D{current_row}'] = make_sum_formula('D', '+')
+        ws[f'E{current_row}'] = make_sum_formula('E', '+')
+        ws[f'F{current_row}'] = make_sum_formula('F', '+')
+        ws[f'G{current_row}'] = make_simple_sum('G')
         
         # TAKENOVER totals
         ws[f'P{current_row}'] = label
-        ws[f'Q{current_row}'] = f"{totals_taken['NO_OF_TRAINS'][0]}/{totals_taken['NO_OF_TRAINS'][1]}"
-        ws[f'R{current_row}'] = totals_taken['DIESEL']
-        ws[f'S{current_row}'] = f"{totals_taken['JUMBO_LE'][0]}+{totals_taken['JUMBO_LE'][1]}"
-        ws[f'T{current_row}'] = f"{totals_taken['BOXN_PH_OTH'][0]}+{totals_taken['BOXN_PH_OTH'][1]}"
-        ws[f'U{current_row}'] = f"{totals_taken['BTPN_LE'][0]}+{totals_taken['BTPN_LE'][1]}"
-        ws[f'V{current_row}'] = totals_taken['CONT']
+        ws[f'Q{current_row}'] = make_sum_formula('Q', '/')
+        ws[f'R{current_row}'] = make_simple_sum('R')
+        ws[f'S{current_row}'] = make_sum_formula('S', '+')
+        ws[f'T{current_row}'] = make_sum_formula('T', '+')
+        ws[f'U{current_row}'] = make_sum_formula('U', '+')
+        ws[f'V{current_row}'] = make_simple_sum('V')
         
         # Apply bold formatting and borders to ALL cells in the row
         from openpyxl.styles import Font
