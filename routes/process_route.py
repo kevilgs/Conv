@@ -76,7 +76,7 @@ def generate_final(original_filename, intermediate_filename):
         final_report_filename, message = final_report_generator.generate_final_report(
             handedover_data, 
             takenover_data, 
-            original_filename  # original filename
+            intermediate_filename  # Use intermediate filename to preserve date/timestamp
         )
         
         # Check if generation was successful

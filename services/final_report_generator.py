@@ -264,6 +264,9 @@ class FinalReportGenerator:
         from config import Config
         import os
         
+        if original_filename.endswith('_processed.xlsx'):
+            return os.path.join(Config.INTERMEDIATE_FOLDER, original_filename)
+            
         base_name = os.path.splitext(original_filename)[0]
         intermediate_filename = f"{base_name}_processed.xlsx"
         return os.path.join(Config.INTERMEDIATE_FOLDER, intermediate_filename)
@@ -274,6 +277,9 @@ class FinalReportGenerator:
         import os
         
         base_name = os.path.splitext(original_filename)[0]
+        if base_name.endswith('_processed'):
+            base_name = base_name[:-10] # remove '_processed'
+            
         output_filename = f"{base_name}_final_report.xlsx"
         
         # Create reports directory if it doesn't exist

@@ -61,8 +61,11 @@ class XLSXGenerator:
             ordered_df = self._convert_sau_in_handed_over_section(ordered_df)
 
             # Create output filename
+            from datetime import datetime, timedelta
+            current_date = (datetime.now() - timedelta(days=1)).strftime('%d-%m-%Y')
+            timestamp = datetime.now().strftime('%H%M%S')
             base_name = os.path.splitext(original_filename)[0]
-            output_filename = f"{base_name}_processed.xlsx"
+            output_filename = f"{base_name}_{current_date}_{timestamp}_processed.xlsx"
             output_path = os.path.join(Config.INTERMEDIATE_FOLDER, output_filename)
             
             # Write to Excel
