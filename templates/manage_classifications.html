@@ -43,7 +43,7 @@
 </div>
 
 <div class="action-buttons">
-    <form method="POST" action="{{ url_for('process.process_file', filename=filename) }}">
+    <form method="POST" action="{{ url_for('process.generate_intermediate', filename=filename) }}">
         <input type="hidden" name="custom_classifications" id="customClassifications" value="">
         <button type="submit" class="btn btn-primary">
             <i class="icon-process"></i>

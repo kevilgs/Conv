@@ -9,18 +9,17 @@ import os
 
 process_bp = Blueprint('process', __name__)
 
-@process_bp.route('/process/<filename>', methods=['GET', 'POST'])
-def process_file(filename):
+@process_bp.route('/generate_intermediate/<filename>', methods=['POST'])
+def generate_intermediate(filename):
     try:
         # Handle custom classifications if provided
         custom_classifications = {}
-        if request.method == 'POST':
-            custom_classifications_json = request.form.get('custom_classifications', '{}')
-            if custom_classifications_json:
-                try:
-                    custom_classifications = json.loads(custom_classifications_json)
-                except json.JSONDecodeError:
-                    custom_classifications = {}
+        custom_classifications_json = request.form.get('custom_classifications', '{}')
+        if custom_classifications_json:
+            try:
+                custom_classifications = json.loads(custom_classifications_json)
+            except json.JSONDecodeError:
+                custom_classifications = {}
         
         # Process CSV with custom classifications
         processor = CSVProcessor()
@@ -38,8 +37,25 @@ def process_file(filename):
         
         # Check if intermediate file was created successfully
         if not os.path.exists(xlsx_filename):
-            flash(f'Error: Intermediate file {xlsx_filename} was not created')
+            flash(f'Error: Intermediate file was not created')
             return redirect(url_for('upload.upload'))
+            
+        # Redirect to the wait page where user can edit the Excel file natively
+        just_filename = os.path.basename(xlsx_filename)
+        return render_template('edit_intermediate.html', 
+                               original_filename=filename,
+                               intermediate_filename=just_filename, 
+                               full_path=xlsx_filename)
+                               
+    except Exception as e:
+        flash(f'Error processing file: {str(e)}')
+        return redirect(url_for('upload.upload'))
+
+@process_bp.route('/generate_final/<original_filename>/<intermediate_filename>', methods=['POST'])
+def generate_final(original_filename, intermediate_filename):
+    try:
+        from config import Config
+        xlsx_filename = os.path.join(Config.INTERMEDIATE_FOLDER, intermediate_filename)
         
         # Generate final report
         final_report_generator = FinalReportGenerator()
@@ -60,18 +76,18 @@ def process_file(filename):
         final_report_filename, message = final_report_generator.generate_final_report(
             handedover_data, 
             takenover_data, 
-            filename  # original filename
+            original_filename  # original filename
         )
         
         # Check if generation was successful
         if final_report_filename:
-            # CORRECT - extract just the filename
+            # extract just the filename
             just_filename = os.path.basename(final_report_filename)
             return redirect(url_for('download.download_file', filename=just_filename))
         else:
             flash(f'Error generating final report: {message}')
             return redirect(url_for('upload.upload'))
-        
+            
     except Exception as e:
-        flash(f'Error processing file: {str(e)}')
+        flash(f'Error processing final report: {str(e)}')
         return redirect(url_for('upload.upload'))

@@ -212,6 +212,7 @@ class FinalReportGenerator:
     
     def _add_total_row(self, ws, current_row, totals_handed, totals_taken, label):
         """Add a total row with dynamic Excel formulas"""
+        from openpyxl.worksheet.formula import ArrayFormula
         
         def make_sum_formula(col, sep):
             rng = f"{col}5:{col}{current_row-1}"
@@ -224,20 +225,20 @@ class FinalReportGenerator:
 
         # HANDEDOVER totals
         ws[f'A{current_row}'] = label
-        ws[f'B{current_row}'] = make_sum_formula('B', '/')
+        ws[f'B{current_row}'] = ArrayFormula(f'B{current_row}', make_sum_formula('B', '/'))
         ws[f'C{current_row}'] = make_simple_sum('C')
-        ws[f'D{current_row}'] = make_sum_formula('D', '+')
-        ws[f'E{current_row}'] = make_sum_formula('E', '+')
-        ws[f'F{current_row}'] = make_sum_formula('F', '+')
+        ws[f'D{current_row}'] = ArrayFormula(f'D{current_row}', make_sum_formula('D', '+'))
+        ws[f'E{current_row}'] = ArrayFormula(f'E{current_row}', make_sum_formula('E', '+'))
+        ws[f'F{current_row}'] = ArrayFormula(f'F{current_row}', make_sum_formula('F', '+'))
         ws[f'G{current_row}'] = make_simple_sum('G')
         
         # TAKENOVER totals
         ws[f'P{current_row}'] = label
-        ws[f'Q{current_row}'] = make_sum_formula('Q', '/')
+        ws[f'Q{current_row}'] = ArrayFormula(f'Q{current_row}', make_sum_formula('Q', '/'))
         ws[f'R{current_row}'] = make_simple_sum('R')
-        ws[f'S{current_row}'] = make_sum_formula('S', '+')
-        ws[f'T{current_row}'] = make_sum_formula('T', '+')
-        ws[f'U{current_row}'] = make_sum_formula('U', '+')
+        ws[f'S{current_row}'] = ArrayFormula(f'S{current_row}', make_sum_formula('S', '+'))
+        ws[f'T{current_row}'] = ArrayFormula(f'T{current_row}', make_sum_formula('T', '+'))
+        ws[f'U{current_row}'] = ArrayFormula(f'U{current_row}', make_sum_formula('U', '+'))
         ws[f'V{current_row}'] = make_simple_sum('V')
         
         # Apply bold formatting and borders to ALL cells in the row
