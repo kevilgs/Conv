@@ -60,6 +60,13 @@ class XLSXGenerator:
             # Convert SAU in IC STTN (Copy) based on HANDED OVER ZONE TO
             ordered_df = self._convert_sau_in_handed_over_section(ordered_df)
 
+            # Apply custom PNU merge only if it's NOT MAFour
+            if "MAFour" not in original_filename:
+                pnu_merge_stations = ['BHU', 'CECC', 'GGM', 'MSH', 'SAUN']
+                mask = ordered_df['IC STTN (Copy)'].isin(pnu_merge_stations)
+                ordered_df.loc[mask, 'IC STTN (Copy)'] = 'PNU'
+                ordered_df.loc[mask, 'HANDED OVER ZONE TO'] = 'NW'
+
             # Create output filename
             from datetime import datetime, timedelta
             current_date = (datetime.now() - timedelta(days=1)).strftime('%d-%m-%Y')

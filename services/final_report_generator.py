@@ -38,6 +38,11 @@ class FinalReportGenerator:
                 'SUBTOTAL'
             ]
             
+            # If flexible format, remove the merged stations so they don't print empty rows
+            if "MAFour" not in original_filename:
+                merged_stations = ['BHU', 'CECC', 'GGM', 'MSH', 'SAUN']
+                BASE_STATION_ORDER = [sttn for sttn in BASE_STATION_ORDER if sttn not in merged_stations]
+            
             all_found_stations = set(handedover_stations + takenover_stations)
             unified_stations = []
             for station in BASE_STATION_ORDER:

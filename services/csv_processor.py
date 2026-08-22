@@ -136,6 +136,13 @@ class CSVProcessor:
                 final_df = self._add_classification_columns(final_df)
                 final_df = self._convert_nw_cna_to_aii(final_df)
                 final_df = self._convert_sau_in_taken_over_section(final_df)
+                
+                # Custom merge logic for flexible format (TAKEN OVER section)
+                pnu_merge_stations = ['BHU', 'CECC', 'GGM', 'MSH', 'SAUN']
+                mask_taken = final_df['IC STTN'].isin(pnu_merge_stations)
+                final_df.loc[mask_taken, 'IC STTN'] = 'PNU'
+                final_df.loc[mask_taken, 'ZONE TO'] = 'NW'
+                
                 final_df = self._create_ic_sttn_copy(final_df)
                 grouped_df = self._group_and_sort(final_df)
 
