@@ -33,8 +33,9 @@ class FinalReportGenerator:
             BASE_STATION_ORDER = [
                 'BSR', 'JL', 'KNW', 'SHRN', 'NAD', 'MKC', 'MTA', 'CNA', 'BEC', 
                 'AII', 'HMT', 'BLDI', 'PNU', 'BHU', 'CECC', 'GGM', 'MSH', 'SAUN', 
-                'SUBTOTAL', 
-                'SAUS', 'MPR', 'GTX', 'PAO', 'NOL', 'BHET', 'SAH', 'SJN'
+                'MID_HEADERS', 
+                'SAUS', 'MPR', 'GTX', 'PAO', 'NOL', 'BHET', 'SAH', 'SJN',
+                'SUBTOTAL'
             ]
             
             all_found_stations = set(handedover_stations + takenover_stations)
@@ -43,7 +44,7 @@ class FinalReportGenerator:
                 unified_stations.append(station)
                 
             for station in sorted(list(all_found_stations)):
-                if station not in unified_stations and station not in ['SUBTOTAL', 'GRAND TOTAL']:
+                if station not in unified_stations and station not in ['SUBTOTAL', 'GRAND TOTAL', 'MID_HEADERS']:
                     unified_stations.append(station)
             
             # Populate data starting from row 5
@@ -82,8 +83,13 @@ class FinalReportGenerator:
         current_row = 5  # Start from row 5 (after headers)
         
         for station in unified_stations:
+            if station == 'MID_HEADERS':
+                self.formatter.insert_mid_table_headers(ws, current_row)
+                current_row += 3
+                continue
+                
             if station == 'SUBTOTAL':
-                idx = unified_stations.index('SUBTOTAL')
+                idx = unified_stations.index('MID_HEADERS')
                 subtotal_stations = unified_stations[:idx]
                 
                 totals_handed = processor.calculate_totals(handedover_data, subtotal_stations, is_handedover=True)

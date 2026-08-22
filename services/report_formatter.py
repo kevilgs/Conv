@@ -66,18 +66,18 @@ class ReportFormatter:
         # Apply borders to all header cells
         self._apply_header_borders(ws)
     
-    def _create_row3_headers(self, ws):
+    def _create_row3_headers(self, ws, start_row=3):
         """Create 3rd row headers"""
         # HANDEDOVER section headers
         handedover_headers = {
-            'A3': 'IC STTN',
-            'B3': 'NO OF TRAINS',
-            'C3': 'DIESEL',
-            'D3': 'JUMBO',
-            'E3': 'BOXN',
-            'F3': 'BTPN',
-            'G3': 'CONT',
-            'H3': 'DETAILS'
+            f'A{start_row}': 'IC STTN',
+            f'B{start_row}': 'NO OF TRAINS',
+            f'C{start_row}': 'DIESEL',
+            f'D{start_row}': 'JUMBO',
+            f'E{start_row}': 'BOXN',
+            f'F{start_row}': 'BTPN',
+            f'G{start_row}': 'CONT',
+            f'H{start_row}': 'DETAILS'
         }
         
         for cell, title in handedover_headers.items():
@@ -93,14 +93,14 @@ class ReportFormatter:
         
         # TAKENOVER section headers
         takenover_headers = {
-            'P3': 'IC STTN',
-            'Q3': 'NO OF TRAINS',
-            'R3': 'DIESEL',
-            'S3': 'JUMBO',
-            'T3': 'BOXN',
-            'U3': 'BTPN',
-            'V3': 'CONT',
-            'W3': 'DETAILS'
+            f'P{start_row}': 'IC STTN',
+            f'Q{start_row}': 'NO OF TRAINS',
+            f'R{start_row}': 'DIESEL',
+            f'S{start_row}': 'JUMBO',
+            f'T{start_row}': 'BOXN',
+            f'U{start_row}': 'BTPN',
+            f'V{start_row}': 'CONT',
+            f'W{start_row}': 'DETAILS'
         }
         
         for cell, title in takenover_headers.items():
@@ -115,39 +115,40 @@ class ReportFormatter:
                 ws[cell].alignment = self.vertical_align  # Make vertical
         
         # Merge cells for row 3
-        self._merge_row3_cells(ws)
+        self._merge_row3_cells(ws, start_row)
     
-    def _merge_row3_cells(self, ws):
+    def _merge_row3_cells(self, ws, start_row=3):
         """Merge cells for row 3"""
+        next_row = start_row + 1
         # HANDEDOVER merges
-        ws.merge_cells('A3:A4')  # IC STTN
-        ws.merge_cells('B3:B4')  # NO OF TRAINS
-        ws.merge_cells('C3:C4')  # DIESEL
-        ws.merge_cells('G3:G4')  # CONT
-        ws.merge_cells('H3:O3')  # DETAILS
+        ws.merge_cells(f'A{start_row}:A{next_row}')  # IC STTN
+        ws.merge_cells(f'B{start_row}:B{next_row}')  # NO OF TRAINS
+        ws.merge_cells(f'C{start_row}:C{next_row}')  # DIESEL
+        ws.merge_cells(f'G{start_row}:G{next_row}')  # CONT
+        ws.merge_cells(f'H{start_row}:O{start_row}')  # DETAILS
         
         # TAKENOVER merges
-        ws.merge_cells('P3:P4')  # IC STTN
-        ws.merge_cells('Q3:Q4')  # NO OF TRAINS
-        ws.merge_cells('R3:R4')  # DIESEL
-        ws.merge_cells('V3:V4')  # CONT
-        ws.merge_cells('W3:AD3')  # DETAILS
+        ws.merge_cells(f'P{start_row}:P{next_row}')  # IC STTN
+        ws.merge_cells(f'Q{start_row}:Q{next_row}')  # NO OF TRAINS
+        ws.merge_cells(f'R{start_row}:R{next_row}')  # DIESEL
+        ws.merge_cells(f'V{start_row}:V{next_row}')  # CONT
+        ws.merge_cells(f'W{start_row}:AD{start_row}')  # DETAILS
     
-    def _create_row4_headers(self, ws):
+    def _create_row4_headers(self, ws, start_row=4):
         """Create 4th row sub-headers"""
         # HANDEDOVER sub-headers
         handedover_row4 = {
-            'D4': 'L+E',
-            'E4': 'L+E',
-            'F4': 'L+E',
-            'H4': 'JUMBO',
-            'I4': 'BOXN',
-            'J4': 'BTPN',
-            'K4': 'BTPG',
-            'L4': 'CONT',
-            'M4': 'SHRA',
-            'N4': 'OTHERS',
-            'O4': 'EMPTIES'
+            f'D{start_row}': 'L+E',
+            f'E{start_row}': 'L+E',
+            f'F{start_row}': 'L+E',
+            f'H{start_row}': 'JUMBO',
+            f'I{start_row}': 'BOXN',
+            f'J{start_row}': 'BTPN',
+            f'K{start_row}': 'BTPG',
+            f'L{start_row}': 'CONT',
+            f'M{start_row}': 'SHRA',
+            f'N{start_row}': 'OTHERS',
+            f'O{start_row}': 'EMPTIES'
         }
         
         for cell, title in handedover_row4.items():
@@ -158,17 +159,17 @@ class ReportFormatter:
         
         # TAKENOVER sub-headers
         takenover_row4 = {
-            'S4': 'L+E',
-            'T4': 'PH+OTH',
-            'U4': 'L+E',
-            'W4': 'JUMBO',
-            'X4': 'BOXN',
-            'Y4': 'BTPN',
-            'Z4': 'BTPG',
-            'AA4': 'CONT',
-            'AB4': 'SHRA',
-            'AC4': 'OTHERS',
-            'AD4': 'EMPTIES'
+            f'S{start_row}': 'L+E',
+            f'T{start_row}': 'PH+OTH',
+            f'U{start_row}': 'L+E',
+            f'W{start_row}': 'JUMBO',
+            f'X{start_row}': 'BOXN',
+            f'Y{start_row}': 'BTPN',
+            f'Z{start_row}': 'BTPG',
+            f'AA{start_row}': 'CONT',
+            f'AB{start_row}': 'SHRA',
+            f'AC{start_row}': 'OTHERS',
+            f'AD{start_row}': 'EMPTIES'
         }
         
         for cell, title in takenover_row4.items():
@@ -204,6 +205,37 @@ class ReportFormatter:
                 cell = ws.cell(row=row, column=col)
                 cell.border = self.thin_border
                 # Ensure all cells have white fill
+                cell.fill = self.white_fill
+
+    def insert_mid_table_headers(self, ws, start_row):
+        """Insert a duplicate of the header rows midway through the table"""
+        # First row - HANDEDOVER and TAKENOVER sections
+        ws[f'A{start_row}'] = "HANDEDOVER"
+        ws[f'A{start_row}'].font = self.section_header_font
+        ws[f'A{start_row}'].alignment = self.center_align
+        ws[f'A{start_row}'].fill = self.white_fill
+        ws.merge_cells(f'A{start_row}:O{start_row}')
+        
+        ws[f'P{start_row}'] = "TAKENOVER"
+        ws[f'P{start_row}'].font = self.section_header_font
+        ws[f'P{start_row}'].alignment = self.center_align
+        ws[f'P{start_row}'].fill = self.white_fill
+        ws.merge_cells(f'P{start_row}:AD{start_row}')
+        
+        # Second and Third rows (start_row + 1 and start_row + 2)
+        self._create_row3_headers(ws, start_row=start_row + 1)
+        self._create_row4_headers(ws, start_row=start_row + 2)
+        
+        # Row heights
+        ws.row_dimensions[start_row].height = 20
+        ws.row_dimensions[start_row + 1].height = 20
+        ws.row_dimensions[start_row + 2].height = 20
+        
+        # Apply borders to these 3 rows
+        for row in range(start_row, start_row + 3):
+            for col in range(1, 31):  # A to AD
+                cell = ws.cell(row=row, column=col)
+                cell.border = self.thin_border
                 cell.fill = self.white_fill
     
     def apply_station_group_formatting(self, ws, start_row, end_row, has_handedover=True, has_takenover=True):
