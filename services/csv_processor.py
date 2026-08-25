@@ -59,7 +59,7 @@ class CSVProcessor:
                 df.columns = df.columns.str.strip()
                 columns_to_extract = [
                     'ZONE FROM', 'STATION TO', 'ZONE TO', 'LOAD L/E', 'LOAD TYPE', 'LOCO NO', 'LOCO TYPE', 'ZN-STTN',
-                    'ZONE FROM', 'STATION TO', 'LOAD L/E', 'LOAD TYPE', 'LOCO NO', 'LOCO TYPE'
+                    'ZONE TO', 'STATION TO', 'LOAD L/E', 'LOAD TYPE', 'LOCO NO', 'LOCO TYPE'
                 ]
 
                 def get_all_matching_columns(df_columns, base_name):
@@ -291,7 +291,7 @@ class CSVProcessor:
                 # --- Flexible extraction and renaming logic (same as process_csv) ---
                 columns_to_extract = [
                     'ZONE FROM', 'STATION TO', 'ZONE TO', 'LOAD L/E', 'LOAD TYPE', 'LOCO NO', 'LOCO TYPE', 'ZN-STTN',
-                    'ZONE FROM', 'STATION TO', 'LOAD L/E', 'LOAD TYPE', 'LOCO NO', 'LOCO TYPE'
+                    'ZONE TO', 'STATION TO', 'LOAD L/E', 'LOAD TYPE', 'LOCO NO', 'LOCO TYPE'
                 ]
 
                 def get_all_matching_columns(df_columns, base_name):
