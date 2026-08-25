@@ -103,8 +103,15 @@ class XLSXGenerator:
                 
             # Rule: IC STTN (Copy) = SAU, check HANDED OVER ZONE TO
             mask = df['IC STTN (Copy)'] == 'SAU'
-            saus_mask = mask & df['HANDED OVER ZONE TO'].isin(self.saus_zones)
-            saun_mask = mask & ~df['HANDED OVER ZONE TO'].isin(self.saus_zones)
+            base_saus_mask = mask & df['HANDED OVER ZONE TO'].isin(self.saus_zones)
+            
+            if 'HANDED OVER STTN TO' in df.columns:
+                custom_saus_mask = mask & (df['HANDED OVER ZONE TO'] == 'DFCR') & (df['HANDED OVER STTN TO'].isin(['DGGN', 'SCGN']))
+            else:
+                custom_saus_mask = pd.Series([False] * len(df))
+                
+            saus_mask = base_saus_mask | custom_saus_mask
+            saun_mask = mask & ~saus_mask
             
             df.loc[saus_mask, 'IC STTN (Copy)'] = 'SAUS'
             df.loc[saun_mask, 'IC STTN (Copy)'] = 'SAUN'

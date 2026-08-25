@@ -202,14 +202,21 @@ class CSVProcessor:
         
         # Use HANDED OVER ZONE TO for handedover section conversion
         if 'HANDED OVER ZONE TO' in df.columns:
-            saus_mask = mask & df['HANDED OVER ZONE TO'].isin(self.saus_zones)
-            saun_mask = mask & ~df['HANDED OVER ZONE TO'].isin(self.saus_zones)
+            base_saus_mask = mask & df['HANDED OVER ZONE TO'].isin(self.saus_zones)
+            
+            if 'HANDED OVER STTN TO' in df.columns:
+                custom_saus_mask = mask & (df['HANDED OVER ZONE TO'] == 'DFCR') & (df['HANDED OVER STTN TO'].isin(['DGGN', 'SCGN']))
+            else:
+                custom_saus_mask = pd.Series([False] * len(df))
+                
+            saus_mask = base_saus_mask | custom_saus_mask
+            saun_mask = mask & ~saus_mask
         else:
             # Fallback logic - default to SAUN first (priority)
             saun_mask = mask  
             saus_mask = pd.Series([False] * len(df))
         
-        # Apply conversions with SAUN having priority
+        # Apply conversions
         df.loc[saun_mask, 'IC STTN (Copy)'] = 'SAUN'
         df.loc[saus_mask, 'IC STTN (Copy)'] = 'SAUS'
         
