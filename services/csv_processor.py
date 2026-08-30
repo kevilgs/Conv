@@ -45,10 +45,15 @@ class CSVProcessor:
                 extracted_df = self._add_classification_columns(extracted_df)
                 # Convert CNA of NW zone to AII
                 extracted_df = self._convert_nw_cna_to_aii(extracted_df)
+                
+                original_ic_sttn = extracted_df['IC STTN'].copy()
+                
                 # Convert SAU in IC STTN based on TAKEN OVER ZONE FROM (for taken over section only)
                 extracted_df = self._convert_sau_in_taken_over_section(extracted_df)
+                
                 # Create IC STTN (Copy) for handedover section
-                extracted_df = self._create_ic_sttn_copy(extracted_df)
+                extracted_df = self._create_ic_sttn_copy(extracted_df, original_ic_sttn)
+                
                 # Group and sort data
                 grouped_df = self._group_and_sort(extracted_df)
                 return grouped_df
@@ -168,57 +173,64 @@ class CSVProcessor:
         return df
     
     def _convert_sau_in_taken_over_section(self, df):
-        """Convert SAU in IC STTN based on TAKEN OVER ZONE FROM"""
-        # Rule: IC STTN = SAU, check TAKEN OVER ZONE FROM
-        mask = df['IC STTN'] == 'SAU'
-        saus_mask = mask & df['TAKEN OVER ZONE FROM'].isin(self.saus_zones)
-        saun_mask = mask & ~df['TAKEN OVER ZONE FROM'].isin(self.saus_zones)
+        """Convert SAU and GGM in IC STTN based on TAKEN OVER ZONE FROM"""
+        # Rule for SAU
+        sau_mask = df['IC STTN'] == 'SAU'
+        sau_saus_mask = sau_mask & df['TAKEN OVER ZONE FROM'].isin(self.saus_zones)
+        sau_saun_mask = sau_mask & ~sau_saus_mask
         
-        df.loc[saun_mask, 'IC STTN'] = 'SAUN'
-        df.loc[saus_mask, 'IC STTN'] = 'SAUS'
+        df.loc[sau_saun_mask, 'IC STTN'] = 'SAUN'
+        df.loc[sau_saus_mask, 'IC STTN'] = 'SAUS'
+        
+        # Rule for GGM
+        ggm_mask = df['IC STTN'] == 'GGM'
+        ggm_saus_mask = ggm_mask & df['TAKEN OVER ZONE FROM'].isin(self.saus_zones)
+        df.loc[ggm_saus_mask, 'IC STTN'] = 'SAUS'
         
         return df
     
-    def _create_ic_sttn_copy(self, df):
+    def _create_ic_sttn_copy(self, df, original_ic_sttn=None):
         """Create IC STTN (Copy) for handedover section with different logic"""
-        # Start with original IC STTN before any conversions (except CNA->AII)
-        df['IC STTN (Copy)'] = df['IC STTN'].copy()
-
-        print(df[df['IC STTN (Copy)'] == 'SAU'])
-        
+        # Start with original IC STTN before any conversions
+        if original_ic_sttn is not None:
+            df['IC STTN (Copy)'] = original_ic_sttn.copy()
+        else:
+            df['IC STTN (Copy)'] = df['IC STTN'].copy()
+            
         # Handle CNA conversion for IC STTN (Copy) as well
         mask_cna = (df['ZONE TO'] == 'NW') & (df['IC STTN (Copy)'] == 'CNA')
         df.loc[mask_cna, 'IC STTN (Copy)'] = 'AII'
         
-        # For handedover section, we need to start from original SAU values
-        # Reset any SAU conversions that might have been applied
-        mask_sau_reset = (df['IC STTN (Copy)'].isin(['SAUS', 'SAUN']))
-        # Find original SAU entries by checking if they were converted
-        original_sau_mask = mask_sau_reset
-        df.loc[original_sau_mask, 'IC STTN (Copy)'] = 'SAU'
-        
-        # Now apply SAU conversion for IC STTN (Copy) using HANDED OVER ZONE TO
-        mask = df['IC STTN (Copy)'] == 'SAU'
+        # Now apply SAU and GGM conversion for IC STTN (Copy) using HANDED OVER ZONE TO
+        sau_mask = df['IC STTN (Copy)'] == 'SAU'
+        ggm_mask = df['IC STTN (Copy)'] == 'GGM'
         
         # Use HANDED OVER ZONE TO for handedover section conversion
         if 'HANDED OVER ZONE TO' in df.columns:
-            base_saus_mask = mask & df['HANDED OVER ZONE TO'].isin(self.saus_zones)
+            sau_base_saus_mask = sau_mask & df['HANDED OVER ZONE TO'].isin(self.saus_zones)
+            ggm_base_saus_mask = ggm_mask & df['HANDED OVER ZONE TO'].isin(self.saus_zones)
             
             if 'HANDED OVER STTN TO' in df.columns:
-                custom_saus_mask = mask & (df['HANDED OVER ZONE TO'] == 'DFCR') & (df['HANDED OVER STTN TO'].isin(['DGGN', 'SCGN']))
+                sau_custom_saus_mask = sau_mask & (df['HANDED OVER ZONE TO'] == 'DFCR') & (df['HANDED OVER STTN TO'].isin(['DGGN', 'SCGN']))
+                ggm_custom_saus_mask = ggm_mask & (df['HANDED OVER ZONE TO'] == 'DFCR') & (df['HANDED OVER STTN TO'].isin(['DGGN', 'SCGN']))
             else:
-                custom_saus_mask = pd.Series([False] * len(df))
+                sau_custom_saus_mask = pd.Series([False] * len(df))
+                ggm_custom_saus_mask = pd.Series([False] * len(df))
                 
-            saus_mask = base_saus_mask | custom_saus_mask
-            saun_mask = mask & ~saus_mask
+            sau_saus_mask = sau_base_saus_mask | sau_custom_saus_mask
+            sau_saun_mask = sau_mask & ~sau_saus_mask
+            
+            ggm_saus_mask = ggm_base_saus_mask | ggm_custom_saus_mask
         else:
             # Fallback logic - default to SAUN first (priority)
-            saun_mask = mask  
-            saus_mask = pd.Series([False] * len(df))
+            sau_saun_mask = sau_mask  
+            sau_saus_mask = pd.Series([False] * len(df))
+            ggm_saus_mask = pd.Series([False] * len(df))
         
         # Apply conversions
-        df.loc[saun_mask, 'IC STTN (Copy)'] = 'SAUN'
-        df.loc[saus_mask, 'IC STTN (Copy)'] = 'SAUS'
+        df.loc[sau_saun_mask, 'IC STTN (Copy)'] = 'SAUN'
+        df.loc[sau_saus_mask, 'IC STTN (Copy)'] = 'SAUS'
+        df.loc[ggm_saus_mask, 'IC STTN (Copy)'] = 'SAUS'
         
         return df
     
@@ -258,20 +270,35 @@ class CSVProcessor:
             else:
                 return 1000
         
+        def get_original_station_priority(zn_sttn):
+            if pd.isna(zn_sttn) or not isinstance(zn_sttn, str):
+                return 100
+            if 'SAU' in zn_sttn and 'SAUN' not in zn_sttn and 'SAUS' not in zn_sttn:
+                return 0
+            if 'GGM' in zn_sttn:
+                return 1
+            return 2
+            
         # Add zone priority
         df['zone_priority'] = df['ZONE TO'].apply(get_zone_priority)
+        
+        if 'ZN-STTN' in df.columns:
+            df['orig_sttn_priority'] = df['ZN-STTN'].apply(get_original_station_priority)
+        else:
+            df['orig_sttn_priority'] = 2
         
         # Create combined sorting key for BOTH IC STTN and IC STTN (Copy)
         df['combined_priority'] = df.apply(lambda row: (
             get_station_priority(row['ZONE TO'], row['IC STTN']),
-            get_station_priority(row['ZONE TO'], row['IC STTN (Copy)'])
+            get_station_priority(row['ZONE TO'], row['IC STTN (Copy)']),
+            row['orig_sttn_priority']
         ), axis=1)
         
         # Sort by zone first, then by combined priority
         sorted_df = df.sort_values([
             'zone_priority',
             'combined_priority'
-        ]).drop(['zone_priority', 'combined_priority'], axis=1)
+        ]).drop(['zone_priority', 'combined_priority', 'orig_sttn_priority'], axis=1)
         
         return sorted_df
     

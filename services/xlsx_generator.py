@@ -101,20 +101,28 @@ class XLSXGenerator:
                 sc_rows = sau_rows[sau_rows['HANDED OVER ZONE TO'] == 'SC']
                 print(f"SC rows: {len(sc_rows)}")
                 
-            # Rule: IC STTN (Copy) = SAU, check HANDED OVER ZONE TO
-            mask = df['IC STTN (Copy)'] == 'SAU'
-            base_saus_mask = mask & df['HANDED OVER ZONE TO'].isin(self.saus_zones)
+            # Rule: IC STTN (Copy) = SAU or GGM, check HANDED OVER ZONE TO
+            sau_mask = df['IC STTN (Copy)'] == 'SAU'
+            ggm_mask = df['IC STTN (Copy)'] == 'GGM'
+            
+            sau_base_saus_mask = sau_mask & df['HANDED OVER ZONE TO'].isin(self.saus_zones)
+            ggm_base_saus_mask = ggm_mask & df['HANDED OVER ZONE TO'].isin(self.saus_zones)
             
             if 'HANDED OVER STTN TO' in df.columns:
-                custom_saus_mask = mask & (df['HANDED OVER ZONE TO'] == 'DFCR') & (df['HANDED OVER STTN TO'].isin(['DGGN', 'SCGN']))
+                sau_custom_saus_mask = sau_mask & (df['HANDED OVER ZONE TO'] == 'DFCR') & (df['HANDED OVER STTN TO'].isin(['DGGN', 'SCGN']))
+                ggm_custom_saus_mask = ggm_mask & (df['HANDED OVER ZONE TO'] == 'DFCR') & (df['HANDED OVER STTN TO'].isin(['DGGN', 'SCGN']))
             else:
-                custom_saus_mask = pd.Series([False] * len(df))
+                sau_custom_saus_mask = pd.Series([False] * len(df))
+                ggm_custom_saus_mask = pd.Series([False] * len(df))
                 
-            saus_mask = base_saus_mask | custom_saus_mask
-            saun_mask = mask & ~saus_mask
+            sau_saus_mask = sau_base_saus_mask | sau_custom_saus_mask
+            sau_saun_mask = sau_mask & ~sau_saus_mask
             
-            df.loc[saus_mask, 'IC STTN (Copy)'] = 'SAUS'
-            df.loc[saun_mask, 'IC STTN (Copy)'] = 'SAUN'
+            ggm_saus_mask = ggm_base_saus_mask | ggm_custom_saus_mask
+            
+            df.loc[sau_saus_mask, 'IC STTN (Copy)'] = 'SAUS'
+            df.loc[sau_saun_mask, 'IC STTN (Copy)'] = 'SAUN'
+            df.loc[ggm_saus_mask, 'IC STTN (Copy)'] = 'SAUS'
         
         return df
      
