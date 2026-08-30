@@ -243,7 +243,7 @@ class FinalReportGenerator:
         
         # Apply bold formatting and borders to ALL cells in the row
         from openpyxl.styles import Font
-        bold_font = Font(name='Arial', size=9, bold=True)
+        bold_font = Font(name='Segoe UI', size=16, bold=True)
         
         # Format all columns A through AD
         for col in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O',

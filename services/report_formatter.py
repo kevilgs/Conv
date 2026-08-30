@@ -7,10 +7,10 @@ from openpyxl.utils import get_column_letter
 class ReportFormatter:
     def __init__(self):
         # Font styles
-        self.title_font = Font(name='Arial', size=14, bold=True)
-        self.section_header_font = Font(name='Arial', size=12, bold=True)
-        self.column_header_font = Font(name='Arial', size=10, bold=True)
-        self.normal_font = Font(name='Arial', size=9)
+        self.title_font = Font(name='Segoe UI', size=16, bold=True)
+        self.section_header_font = Font(name='Segoe UI', size=16, bold=True)
+        self.column_header_font = Font(name='Segoe UI', size=16, bold=True)
+        self.normal_font = Font(name='Segoe UI', size=16)
         
         # No fill colors - all white
         self.white_fill = PatternFill(start_color='FFFFFF', end_color='FFFFFF', fill_type='solid')
@@ -318,7 +318,7 @@ class ReportFormatter:
         from openpyxl.styles import Font
         
         # Create font: size 14, bold
-        station_trains_font = Font(name='Arial', size=14, bold=True)
+        station_trains_font = Font(name='Segoe UI', size=16, bold=True)
         
         if has_handedover:
             # Format handedover IC STTN (column A) and NO OF TRAINS (column B)
@@ -414,14 +414,14 @@ class ReportFormatter:
         from openpyxl.cell.text import InlineFont
 
         # Bold fonts
-        bold_font = Font(name='Arial', size=10, bold=True)
-        normal_font = Font(name='Arial', size=9)
+        bold_font = Font(name='Segoe UI', size=16, bold=True)
+        normal_font = Font(name='Segoe UI', size=16)
         center_align = Alignment(horizontal='center', vertical='center')
         left_align = Alignment(horizontal='left', vertical='center')
         thin_border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
         
-        bold_inline = InlineFont(b=True, sz=9, rFont='Arial')
-        normal_inline = InlineFont(b=False, sz=9, rFont='Arial')
+        bold_inline = InlineFont(b=True, sz=16, rFont='Segoe UI')
+        normal_inline = InlineFont(b=False, sz=16, rFont='Segoe UI')
 
         def format_cell(cell, value, font, align, border):
             cell.value = value
@@ -559,8 +559,8 @@ class ReportFormatter:
 
     def create_ph_aggregate_row(self, ws, start_row, ph_string):
         """Create a separate row for aggregated PH data"""
-        bold_font = Font(name='Arial', size=10, bold=True)
-        normal_font = Font(name='Arial', size=9)
+        bold_font = Font(name='Segoe UI', size=16, bold=True)
+        normal_font = Font(name='Segoe UI', size=16)
         
         def format_cell(cell, value, font, alignment, border):
             cell.value = value
