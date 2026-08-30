@@ -147,11 +147,18 @@ class ReportDataProcessor:
                 sttn_to_values = filtered_data['HANDED OVER STTN TO'].tolist()
                 sttn_counts = Counter(sttn_to_values)
                 
-                for sttn, count in sttn_counts.items():
-                    if count == 1:
-                        details['OTHERS'].append(f"{classification}[{sttn}]")
-                    else:
-                        details['OTHERS'].append(f"{classification}[{sttn}]-{count}")
+                if classification in ['BCACBM', 'NMG', 'ACT1', 'ACT2']:
+                    total_count = sum(sttn_counts.values())
+                    lines = [f"{classification} - {total_count}"]
+                    for sttn, count in sttn_counts.items():
+                        lines.append(f"{sttn} - {count}")
+                    details['OTHERS'].append("\n".join(lines))
+                else:
+                    for sttn, count in sttn_counts.items():
+                        if count == 1:
+                            details['OTHERS'].append(f"{classification}[{sttn}]")
+                        else:
+                            details['OTHERS'].append(f"{classification}[{sttn}]-{count}")
         # Filter for empties BUT exclude CONT wagon types
         empties_data = station_data[
             (station_data['HANDED OVER L/E'] == 'E') & 
@@ -277,11 +284,18 @@ class ReportDataProcessor:
                 sttn_to_values = filtered_data['TAKEN OVER STTN TO'].tolist()
                 sttn_counts = Counter(sttn_to_values)
                 
-                for sttn, count in sttn_counts.items():
-                    if count == 1:
-                        details['OTHERS'].append(f"{classification}[{sttn}]")
-                    else:
-                        details['OTHERS'].append(f"{classification}[{sttn}]-{count}")
+                if classification in ['BCACBM', 'NMG', 'ACT1', 'ACT2']:
+                    total_count = sum(sttn_counts.values())
+                    lines = [f"{classification} - {total_count}"]
+                    for sttn, count in sttn_counts.items():
+                        lines.append(f"{sttn} - {count}")
+                    details['OTHERS'].append("\n".join(lines))
+                else:
+                    for sttn, count in sttn_counts.items():
+                        if count == 1:
+                            details['OTHERS'].append(f"{classification}[{sttn}]")
+                        else:
+                            details['OTHERS'].append(f"{classification}[{sttn}]-{count}")
         
         # Calculate EMPTIES - group by TAKEN OVER TYPE with L/E = E
         empties_data = station_data[
