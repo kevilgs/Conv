@@ -26,8 +26,11 @@ class ReportFormatter:
             top=Side(style='thick'), bottom=Side(style='thick')
         )
         self.thin_border = Border(
-            left=Side(style='thin'), right=Side(style='thin'),
-            top=Side(style='thin'), bottom=Side(style='thin')
+            left=Side(style='thick'), right=Side(style='thick'),
+            top=Side(style='thick'), bottom=Side(style='thick')
+        )
+        self.details_border = Border(
+            left=Side(style='thick'), right=Side(style='thick')
         )
     
     def create_report_structure(self, ws):
@@ -418,7 +421,7 @@ class ReportFormatter:
         normal_font = Font(name='Segoe UI', size=16)
         center_align = Alignment(horizontal='center', vertical='center')
         left_align = Alignment(horizontal='left', vertical='center')
-        thin_border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
+        thin_border = Border(left=Side(style='thick'), right=Side(style='thick'), top=Side(style='thick'), bottom=Side(style='thick'))
         
         bold_inline = InlineFont(b=True, sz=16, rFont='Segoe UI')
         normal_inline = InlineFont(b=False, sz=16, rFont='Segoe UI')

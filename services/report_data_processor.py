@@ -149,9 +149,9 @@ class ReportDataProcessor:
                 
                 if classification in ['BCACBM', 'NMG', 'ACT1', 'ACT2']:
                     total_count = sum(sttn_counts.values())
-                    lines = [f"{classification} - {total_count}"]
+                    lines = [f"{classification}" if total_count == 1 else f"{classification} - {total_count}"]
                     for sttn, count in sttn_counts.items():
-                        lines.append(f"{sttn} - {count}")
+                        lines.append(f"{sttn}" if count == 1 else f"{sttn} - {count}")
                     details['OTHERS'].append("\n".join(lines))
                 else:
                     for sttn, count in sttn_counts.items():
@@ -286,9 +286,9 @@ class ReportDataProcessor:
                 
                 if classification in ['BCACBM', 'NMG', 'ACT1', 'ACT2']:
                     total_count = sum(sttn_counts.values())
-                    lines = [f"{classification} - {total_count}"]
+                    lines = [f"{classification}" if total_count == 1 else f"{classification} - {total_count}"]
                     for sttn, count in sttn_counts.items():
-                        lines.append(f"{sttn} - {count}")
+                        lines.append(f"{sttn}" if count == 1 else f"{sttn} - {count}")
                     details['OTHERS'].append("\n".join(lines))
                 else:
                     for sttn, count in sttn_counts.items():

@@ -19,6 +19,7 @@ class FinalReportGenerator:
             
             # Create report structure
             self.formatter.create_report_structure(ws)
+            ws.sheet_view.showGridLines = False
             
             # Get stations in order
             processor = ReportDataProcessor()
@@ -208,7 +209,7 @@ class FinalReportGenerator:
             cell = ws[f'{column}{cell_row}']
             cell.font = self.formatter.normal_font
             cell.alignment = self.formatter.center_align
-            cell.border = self.formatter.thin_border
+            cell.border = self.formatter.details_border
             cell.fill = self.formatter.white_fill
 
     def _format_data_row(self, ws, row_num):
@@ -218,7 +219,7 @@ class FinalReportGenerator:
             cell = ws[f'{col}{row_num}']
             cell.font = self.formatter.normal_font
             cell.alignment = self.formatter.center_align
-            cell.border = self.formatter.thin_border
+            cell.border = self.formatter.details_border
             cell.fill = self.formatter.white_fill
     
     def _add_total_row(self, ws, current_row, totals_handed, totals_taken, label):
