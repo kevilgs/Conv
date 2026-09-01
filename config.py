@@ -62,15 +62,9 @@ class Config:
     
     @staticmethod
     def init_app():
-        print(f"=== CONFIG DEBUG ===")
-        print(f"BASE_PATH: {Config.BASE_PATH}")
-        print(f"INTERMEDIATE_FOLDER: {Config.INTERMEDIATE_FOLDER}")
-        print(f"REPORTS_FOLDER: {Config.REPORTS_FOLDER}")
-        
         for folder in [Config.UPLOAD_FOLDER, Config.INTERMEDIATE_FOLDER, 
                       Config.REPORTS_FOLDER, Config.DATA_FOLDER]:
             os.makedirs(folder, exist_ok=True)
-            print(f"Created/verified: {folder}")
         Config._create_default_data_files()
     
     @staticmethod 

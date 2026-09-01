@@ -10,7 +10,7 @@ class FinalReportGenerator:
         self.formatter = ReportFormatter()
         self.data_processor = ReportDataProcessor()
     
-    def generate_final_report(self, handedover_data, takenover_data, original_filename):
+    def generate_final_report(self, handedover_data, takenover_data, original_filename, report_date=None):
         """Generate final report from processed intermediate data"""
         try:
             wb = Workbook()
@@ -18,7 +18,7 @@ class FinalReportGenerator:
             ws.title = "Zonal Interchange Report"
             
             # Create report structure
-            self.formatter.create_report_structure(ws)
+            self.formatter.create_report_structure(ws, report_date=report_date)
             ws.sheet_view.showGridLines = False
             
             # Get stations in order

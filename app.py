@@ -42,6 +42,8 @@ if __name__ == '__main__':
     def open_browser():
         webbrowser.open_new("http://127.0.0.1:5000/")  # Change port if needed
 
-    threading.Timer(1.0, open_browser).start()
+    if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
+        threading.Timer(1.0, open_browser).start()
+        
     app = create_app()
     app.run(debug=True)

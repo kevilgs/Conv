@@ -72,11 +72,30 @@ def generate_final(original_filename, intermediate_filename):
         handedover_data = report_processor.process_handedover_data(intermediate_df)
         takenover_data = report_processor.process_takenover_data(intermediate_df)
         
+        # Extract report date from original CSV
+        report_date = None
+        try:
+            csv_path = os.path.join(Config.UPLOAD_FOLDER, original_filename)
+            if os.path.exists(csv_path):
+                with open(csv_path, 'r', encoding='utf-8', errors='replace') as f:
+                    for i in range(5):
+                        line = f.readline()
+                        if not line: break
+                        if "DateFrom:" in line:
+                            report_date = line.split("DateFrom:")[1].split(",")[0].strip()
+                            break
+                        elif "IC Date:" in line:
+                            report_date = line.split("IC Date:")[1].split(",")[0].strip()
+                            break
+        except Exception as e:
+            print(f"Failed to extract date from CSV: {e}")
+            
         # Generate final report with all required arguments
         final_report_filename, message = final_report_generator.generate_final_report(
             handedover_data, 
             takenover_data, 
-            intermediate_filename  # Use intermediate filename to preserve date/timestamp
+            intermediate_filename,  # Use intermediate filename to preserve date/timestamp
+            report_date=report_date
         )
         
         # Check if generation was successful

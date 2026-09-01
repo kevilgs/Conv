@@ -33,11 +33,15 @@ class ReportFormatter:
             left=Side(style='thick'), right=Side(style='thick')
         )
     
-    def create_report_structure(self, ws):
+    def create_report_structure(self, ws, report_date=None):
         """Create the complete report structure with headers and formatting"""
         
         # 1st Row - Main Title
-        current_date = (datetime.now() - timedelta(days=1)).strftime('%d-%m-%Y')
+        if report_date:
+            current_date = report_date
+        else:
+            current_date = (datetime.now() - timedelta(days=1)).strftime('%d-%m-%Y')
+            
         ws['A1'] = f"ZONAL INTERCHANGE ON {current_date}"
         ws['A1'].font = self.title_font
         ws['A1'].alignment = self.center_align
