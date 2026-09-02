@@ -28,11 +28,17 @@
     </form>
     <p style="margin: 0.5rem 0;">This opens the file in Excel. Make your changes, save, and close Excel. You will come back to this page.</p>
 
-    <form method="POST" action="{{ url_for('process.generate_final', original_filename=original_filename, intermediate_filename=intermediate_filename) }}">
-        <button type="submit" class="btn btn-primary" style="width: 100%;">
-            Continue without changes
-        </button>
-    </form>
-    <p style="margin: 0.5rem 0;">This creates the final report from the file as it is now.</p>
+    <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+        <form method="POST" action="{{ url_for('process.generate_final', original_filename=original_filename, intermediate_filename=intermediate_filename) }}" style="flex: 1;">
+            <button type="submit" class="btn btn-primary" style="width: 100%;">
+                Continue without changes
+            </button>
+        </form>
+        
+        <a href="{{ url_for('index') }}" class="btn btn-secondary" style="flex: 1; text-align: center; display: flex; align-items: center; justify-content: center;">
+            Start Over
+        </a>
+    </div>
+    <p style="margin: 0.5rem 0;">Continue creates the final report from the file as it is now.</p>
 </div>
 {% endblock %}
