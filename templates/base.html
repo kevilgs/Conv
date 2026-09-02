@@ -3,14 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Report Generator{% endblock %}</title>
+    <title>{% block title %}Morning Interchange Report Generator{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <header>
-        <h1>Report Generator</h1>
+        <h1>Morning Interchange Report Generator</h1>
     </header>
-    
+
+    {% block step_indicator %}{% endblock %}
+
     <main>
         <div class="container">
             {% with messages = get_flashed_messages() %}
@@ -26,5 +28,13 @@
             {% block content %}{% endblock %}
         </div>
     </main>
+
+    <script>
+        // Stop the server when this tab is closed.
+        fetch('/hello', {method: 'POST'}).catch(function () {});
+        window.addEventListener('pagehide', function () {
+            navigator.sendBeacon('/closing');
+        });
+    </script>
 </body>
 </html>
