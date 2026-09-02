@@ -8,7 +8,7 @@ Write-Host "Installing dependencies..."
 
 # Run PyInstaller
 Write-Host "Compiling executable..."
-.\build_env\Scripts\pyinstaller.exe --onefile --noconfirm --add-data "templates;templates" --add-data "static;static" app.py --name ReportGenerator
+.\build_env\Scripts\pyinstaller.exe --onefile --noconfirm --noconsole --add-data "templates;templates" --add-data "static;static" app.py --name ReportGenerator
 
 # Create the final distribution folder
 Write-Host "Preparing Release folder..."

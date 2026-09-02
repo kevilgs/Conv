@@ -1,36 +1,38 @@
 {% extends "base.html" %}
 
-{% block title %}Edit Intermediate Data - Report Generator{% endblock %}
+{% block title %}Edit Intermediate Data - Morning Interchange Report Generator{% endblock %}
+
+{% block step_indicator %}
+<div class="step-indicator">
+    <ol>
+        <li><span class="step-number">1</span>Upload file</li>
+        <li><span class="step-number">2</span>Check classifications</li>
+        <li class="current-step"><span class="step-number">3</span>Get report</li>
+    </ol>
+</div>
+{% endblock %}
 
 {% block content %}
-<div class="edit-intermediate-section" style="text-align: center; padding: 30px;">
-    <h2><i class="icon-file-excel"></i> Intermediate Data Generated</h2>
-    
-    <div style="background-color: #f8f9fa; border-left: 5px solid #0056b3; padding: 20px; text-align: left; margin: 20px 0; border-radius: 4px;">
-        <h3>Time to Edit!</h3>
-        <p>The raw CSV has been processed into an Excel file. You now have the opportunity to make any manual changes before generating the final report.</p>
-        
-        <p><strong>Location:</strong> <code style="background-color: #e9ecef; padding: 4px 8px; border-radius: 4px; font-size: 1.1em; color: #d63384;">{{ full_path }}</code></p>
-        
-        <ol style="margin-top: 20px; font-size: 1.1em; line-height: 1.6;">
-            <li>Open the folder on your computer that contains the file above.</li>
-            <li>Double-click to open it in Microsoft Excel.</li>
-            <li>Make any necessary data modifications.</li>
-            <li><strong>Save</strong> the file in Excel and <strong>Close</strong> it.</li>
-        </ol>
-    </div>
+<h2>Step 3 of 3: Review and get your report</h2>
 
-    <div class="action-buttons" style="margin-top: 40px;">
-        <form method="POST" action="{{ url_for('process.generate_final', original_filename=original_filename, intermediate_filename=intermediate_filename) }}">
-            <button type="submit" class="btn btn-primary" style="font-size: 1.2em; padding: 15px 30px;">
-                <i class="icon-process"></i>
-                Generate Final Report
-            </button>
-        </form>
-        
-        <a href="{{ url_for('index') }}" class="btn btn-secondary" style="margin-top: 15px; display: inline-block;">
-            <i class="icon-back"></i> Start Over
-        </a>
-    </div>
+<div class="instructions">
+    <p>Your file has been processed. You can check it in Excel before making the final report, or continue straight away.</p>
+    <p style="margin-top: 1rem;"><strong>File location:</strong> <code>{{ full_path }}</code></p>
+</div>
+
+<div class="action-buttons" style="flex-direction: column; align-items: stretch;">
+    <form method="POST" action="{{ url_for('process.open_in_excel', original_filename=original_filename, intermediate_filename=intermediate_filename) }}">
+        <button type="submit" class="btn btn-secondary" style="width: 100%;">
+            Open in Excel to check or edit
+        </button>
+    </form>
+    <p style="margin: 0.5rem 0;">This opens the file in Excel. Make your changes, save, and close Excel. You will come back to this page.</p>
+
+    <form method="POST" action="{{ url_for('process.generate_final', original_filename=original_filename, intermediate_filename=intermediate_filename) }}">
+        <button type="submit" class="btn btn-primary" style="width: 100%;">
+            Continue without changes
+        </button>
+    </form>
+    <p style="margin: 0.5rem 0;">This creates the final report from the file as it is now.</p>
 </div>
 {% endblock %}

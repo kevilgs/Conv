@@ -1,29 +1,39 @@
 {% extends "base.html" %}
 
-{% block title %}Upload CSV - Report Generator{% endblock %}
+{% block title %}Upload CSV - Morning Interchange Report Generator{% endblock %}
+
+{% block step_indicator %}
+<div class="step-indicator">
+    <ol>
+        <li class="current-step"><span class="step-number">1</span>Upload file</li>
+        <li><span class="step-number">2</span>Check classifications</li>
+        <li><span class="step-number">3</span>Get report</li>
+    </ol>
+</div>
+{% endblock %}
 
 {% block content %}
-<h2>Upload CSV File</h2>
+<h2>Step 1 of 3: Upload your CSV file</h2>
 
 <form method="POST" enctype="multipart/form-data" class="upload-form">
     <div class="form-group">
-        <label for="file">Choose CSV file:</label>
+        <label for="file">Choose your CSV file:</label>
         <input type="file" name="file" id="file" accept=".csv" required>
     </div>
     <div class="form-group">
         <button type="submit" class="btn btn-primary">
             <span class="loading" style="display: none;"></span>
-            Upload & Process File
+            Upload file
         </button>
     </div>
 </form>
 
 <div class="instructions">
-    <h3>File Requirements:</h3>
+    <h3>Before you upload:</h3>
     <ul>
         <li>Only CSV files are allowed</li>
-        <li>Maximum file size: 16MB</li>
-        <li>Make sure your CSV has proper headers in row 3</li>
+        <li>The file must be smaller than 16MB</li>
+        <li>The file must have proper headers in row 3</li>
         <li>Required columns: ZONE TO, IC STTN, TAKEN OVER sections, HANDED OVER sections</li>
     </ul>
 </div>

@@ -1,10 +1,20 @@
 {% extends "base.html" %}
 
-{% block title %}Manage Classifications - Report Generator{% endblock %}
+{% block title %}Manage Classifications - Morning Interchange Report Generator{% endblock %}
+
+{% block step_indicator %}
+<div class="step-indicator">
+    <ol>
+        <li><span class="step-number">1</span>Upload file</li>
+        <li class="current-step"><span class="step-number">2</span>Check classifications</li>
+        <li><span class="step-number">3</span>Get report</li>
+    </ol>
+</div>
+{% endblock %}
 
 {% block content %}
-<h2>Manage Wagon Classifications</h2>
-<p>Your CSV file has been uploaded successfully. You can now add new wagon classifications if needed.</p>
+<h2>Step 2 of 3: Check wagon classifications</h2>
+<p>Your file uploaded successfully. Below is the list of wagon types and their categories. Add any new ones you need, then continue.</p>
 
 <div class="classification-section">
     <div class="current-classifications">
@@ -31,10 +41,7 @@
         </form>
         
         <div class="example-box">
-            <h4>Example:</h4>
-            <p><strong>Wagon Type:</strong> BCNHL → <strong>Category:</strong> JUMBO</p>
-            <p><strong>Wagon Type:</strong> BOXN → <strong>Category:</strong> BOX</p>
-            <p><strong>Wagon Type:</strong> SHRA → <strong>Category:</strong> SHRA</p>
+            <p><strong>Example:</strong> BCNHL → JUMBO, BOXN → BOX, SHRA → SHRA</p>
             <div class="note">
                 <strong>Note:</strong> New classifications will be permanently saved to the CSV file.
             </div>
@@ -46,14 +53,12 @@
     <form method="POST" action="{{ url_for('process.generate_intermediate', filename=filename) }}">
         <input type="hidden" name="custom_classifications" id="customClassifications" value="">
         <button type="submit" class="btn btn-primary">
-            <i class="icon-process"></i>
-            Process CSV File
+            Continue
         </button>
     </form>
-    
+
     <a href="{{ url_for('index') }}" class="btn btn-secondary">
-        <i class="icon-back"></i>
-        Upload Different File
+        Upload a different file
     </a>
 </div>
 

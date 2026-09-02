@@ -90,8 +90,6 @@ class WagonClassifier:
         
         # Save to CSV file
         self._save_to_csv()
-        
-        print(f"Added {len(custom_classifications_dict)} custom classifications to CSV")
     
     def _save_to_csv(self):
         """Save current classification map to CSV file"""

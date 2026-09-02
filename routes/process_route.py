@@ -51,6 +51,20 @@ def generate_intermediate(filename):
         flash(f'Error processing file: {str(e)}')
         return redirect(url_for('upload.upload'))
 
+@process_bp.route('/open_in_excel/<original_filename>/<intermediate_filename>', methods=['POST'])
+def open_in_excel(original_filename, intermediate_filename):
+    from config import Config
+    full_path = os.path.join(Config.INTERMEDIATE_FOLDER, intermediate_filename)
+    try:
+        os.startfile(full_path)
+    except Exception as e:
+        flash(f'Could not open the file in Excel: {str(e)}')
+
+    return render_template('edit_intermediate.html',
+                           original_filename=original_filename,
+                           intermediate_filename=intermediate_filename,
+                           full_path=full_path)
+
 @process_bp.route('/generate_final/<original_filename>/<intermediate_filename>', methods=['POST'])
 def generate_final(original_filename, intermediate_filename):
     try:
@@ -89,7 +103,7 @@ def generate_final(original_filename, intermediate_filename):
                             break
         except Exception as e:
             print(f"Failed to extract date from CSV: {e}")
-            
+
         # Generate final report with all required arguments
         final_report_filename, message = final_report_generator.generate_final_report(
             handedover_data, 
