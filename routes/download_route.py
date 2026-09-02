@@ -18,11 +18,6 @@ def download_file(filename):
             # Other files might be in uploads folder
             file_path = os.path.join(Config.UPLOAD_FOLDER, filename)
         
-        # Debug output
-        print(f"Looking for file: {filename}")
-        print(f"File path: {file_path}")
-        print(f"File exists: {os.path.exists(file_path)}")
-        
         if os.path.exists(file_path):
             return send_file(file_path, as_attachment=True)
         else:
@@ -30,7 +25,6 @@ def download_file(filename):
             for folder in [Config.REPORTS_FOLDER, Config.INTERMEDIATE_FOLDER, Config.UPLOAD_FOLDER]:
                 alt_path = os.path.join(folder, filename)
                 if os.path.exists(alt_path):
-                    print(f"Found file in alternative location: {alt_path}")
                     return send_file(alt_path, as_attachment=True)
             
             flash(f'File not found: {filename}')

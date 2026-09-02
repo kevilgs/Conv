@@ -134,9 +134,6 @@ class CSVProcessor:
                 # Drop rows with NaN in ZONE TO or IC STTN
                 final_df = final_df.dropna(subset=['ZONE TO', 'IC STTN'])
 
-                print("Final columns after renaming and before classification:")
-                print(final_df.columns.tolist())
-
                 # Add classification columns, conversions, grouping, etc.
                 final_df = self._add_classification_columns(final_df)
                 final_df = self._convert_nw_cna_to_aii(final_df)
@@ -238,18 +235,10 @@ class CSVProcessor:
         """Convert SAU in IC STTN (Copy) based on HANDED OVER ZONE TO"""
         if 'IC STTN (Copy)' in df.columns and 'HANDED OVER ZONE TO' in df.columns:
             mask = df['IC STTN (Copy)'] == 'SAU'
-            
-            # Debug prints
-            print(f"SAU rows found: {mask.sum()}")
-            print(f"HANDED OVER ZONE TO values: {df.loc[mask, 'HANDED OVER ZONE TO'].unique()}")
-            print(f"SAUS zones configured: {self.saus_zones}")
-            
+
             saus_mask = mask & df['HANDED OVER ZONE TO'].isin(self.saus_zones)
             saun_mask = mask & ~df['HANDED OVER ZONE TO'].isin(self.saus_zones)
-            
-            print(f"SAUS conversions: {saus_mask.sum()}")
-            print(f"SAUN conversions: {saun_mask.sum()}")
-            
+
             df.loc[saus_mask, 'IC STTN (Copy)'] = 'SAUS'
             df.loc[saun_mask, 'IC STTN (Copy)'] = 'SAUN'
         

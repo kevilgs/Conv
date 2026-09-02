@@ -86,21 +86,7 @@ class XLSXGenerator:
     
     def _convert_sau_in_handed_over_section(self, df):
         """Convert SAU in IC STTN (Copy) based on HANDED OVER ZONE TO"""
-        print("=== SAU CONVERSION DEBUG ===")
-        print(f"DataFrame shape: {df.shape}")
-        print(f"saus_zones: {self.saus_zones}")
-        
         if 'IC STTN (Copy)' in df.columns and 'HANDED OVER ZONE TO' in df.columns:
-            sau_rows = df[df['IC STTN (Copy)'] == 'SAU']
-            print(f"Found {len(sau_rows)} SAU rows")
-            
-            if len(sau_rows) > 0:
-                print(f"HANDED OVER ZONE TO values for SAU: {sau_rows['HANDED OVER ZONE TO'].unique()}")
-                
-                # Check SC specifically
-                sc_rows = sau_rows[sau_rows['HANDED OVER ZONE TO'] == 'SC']
-                print(f"SC rows: {len(sc_rows)}")
-                
             # Rule: IC STTN (Copy) = SAU or GGM, check HANDED OVER ZONE TO
             sau_mask = df['IC STTN (Copy)'] == 'SAU'
             ggm_mask = df['IC STTN (Copy)'] == 'GGM'
