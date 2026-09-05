@@ -46,20 +46,20 @@ class ReportFormatter:
         ws['A1'].font = self.title_font
         ws['A1'].alignment = self.center_align
         ws['A1'].fill = self.white_fill
-        ws.merge_cells('A1:AD1')
+        ws.merge_cells('A1:AB1')
         
         # 2nd Row - Section Headers
         ws['A2'] = "HANDEDOVER"
         ws['A2'].font = self.section_header_font
         ws['A2'].alignment = self.center_align
         ws['A2'].fill = self.white_fill
-        ws.merge_cells('A2:O2')
+        ws.merge_cells('A2:N2')
         
-        ws['P2'] = "TAKENOVER"
-        ws['P2'].font = self.section_header_font
-        ws['P2'].alignment = self.center_align
-        ws['P2'].fill = self.white_fill
-        ws.merge_cells('P2:AD2')
+        ws['O2'] = "TAKENOVER"
+        ws['O2'].font = self.section_header_font
+        ws['O2'].alignment = self.center_align
+        ws['O2'].fill = self.white_fill
+        ws.merge_cells('O2:AB2')
         
         # 3rd Row - Main Headers
         self._create_row3_headers(ws)
@@ -79,12 +79,11 @@ class ReportFormatter:
         handedover_headers = {
             f'A{start_row}': 'IC STTN',
             f'B{start_row}': 'NO OF TRAINS',
-            f'C{start_row}': 'DIESEL',
-            f'D{start_row}': 'JUMBO',
-            f'E{start_row}': 'BOXN',
-            f'F{start_row}': 'BTPN',
-            f'G{start_row}': 'CONT',
-            f'H{start_row}': 'DETAILS'
+            f'C{start_row}': 'JUMBO',
+            f'D{start_row}': 'BOXN',
+            f'E{start_row}': 'BTPN',
+            f'F{start_row}': 'CONT',
+            f'G{start_row}': 'DETAILS'
         }
         
         for cell, title in handedover_headers.items():
@@ -100,14 +99,13 @@ class ReportFormatter:
         
         # TAKENOVER section headers
         takenover_headers = {
-            f'P{start_row}': 'IC STTN',
-            f'Q{start_row}': 'NO OF TRAINS',
-            f'R{start_row}': 'DIESEL',
-            f'S{start_row}': 'JUMBO',
-            f'T{start_row}': 'BOXN',
-            f'U{start_row}': 'BTPN',
-            f'V{start_row}': 'CONT',
-            f'W{start_row}': 'DETAILS'
+            f'O{start_row}': 'IC STTN',
+            f'P{start_row}': 'NO OF TRAINS',
+            f'Q{start_row}': 'JUMBO',
+            f'R{start_row}': 'BOXN',
+            f'S{start_row}': 'BTPN',
+            f'T{start_row}': 'CONT',
+            f'U{start_row}': 'DETAILS'
         }
         
         for cell, title in takenover_headers.items():
@@ -130,32 +128,30 @@ class ReportFormatter:
         # HANDEDOVER merges
         ws.merge_cells(f'A{start_row}:A{next_row}')  # IC STTN
         ws.merge_cells(f'B{start_row}:B{next_row}')  # NO OF TRAINS
-        ws.merge_cells(f'C{start_row}:C{next_row}')  # DIESEL
-        ws.merge_cells(f'G{start_row}:G{next_row}')  # CONT
-        ws.merge_cells(f'H{start_row}:O{start_row}')  # DETAILS
+        ws.merge_cells(f'F{start_row}:F{next_row}')  # CONT
+        ws.merge_cells(f'G{start_row}:N{start_row}')  # DETAILS
         
         # TAKENOVER merges
-        ws.merge_cells(f'P{start_row}:P{next_row}')  # IC STTN
-        ws.merge_cells(f'Q{start_row}:Q{next_row}')  # NO OF TRAINS
-        ws.merge_cells(f'R{start_row}:R{next_row}')  # DIESEL
-        ws.merge_cells(f'V{start_row}:V{next_row}')  # CONT
-        ws.merge_cells(f'W{start_row}:AD{start_row}')  # DETAILS
+        ws.merge_cells(f'O{start_row}:O{next_row}')  # IC STTN
+        ws.merge_cells(f'P{start_row}:P{next_row}')  # NO OF TRAINS
+        ws.merge_cells(f'T{start_row}:T{next_row}')  # CONT
+        ws.merge_cells(f'U{start_row}:AB{start_row}')  # DETAILS
     
     def _create_row4_headers(self, ws, start_row=4):
         """Create 4th row sub-headers"""
         # HANDEDOVER sub-headers
         handedover_row4 = {
+            f'C{start_row}': 'L+E',
             f'D{start_row}': 'L+E',
             f'E{start_row}': 'L+E',
-            f'F{start_row}': 'L+E',
-            f'H{start_row}': 'JUMBO',
-            f'I{start_row}': 'BOXN',
-            f'J{start_row}': 'BTPN',
-            f'K{start_row}': 'BTPG',
-            f'L{start_row}': 'CONT',
-            f'M{start_row}': 'SHRA',
-            f'N{start_row}': 'OTHERS',
-            f'O{start_row}': 'EMPTIES'
+            f'G{start_row}': 'JUMBO',
+            f'H{start_row}': 'BOXN',
+            f'I{start_row}': 'BTPN',
+            f'J{start_row}': 'BTPG',
+            f'K{start_row}': 'CONT',
+            f'L{start_row}': 'SHRA',
+            f'M{start_row}': 'OTHERS',
+            f'N{start_row}': 'EMPTIES'
         }
         
         for cell, title in handedover_row4.items():
@@ -166,17 +162,17 @@ class ReportFormatter:
         
         # TAKENOVER sub-headers
         takenover_row4 = {
+            f'Q{start_row}': 'L+E',
+            f'R{start_row}': 'PH+OTH',
             f'S{start_row}': 'L+E',
-            f'T{start_row}': 'PH+OTH',
-            f'U{start_row}': 'L+E',
-            f'W{start_row}': 'JUMBO',
-            f'X{start_row}': 'BOXN',
-            f'Y{start_row}': 'BTPN',
-            f'Z{start_row}': 'BTPG',
-            f'AA{start_row}': 'CONT',
-            f'AB{start_row}': 'SHRA',
-            f'AC{start_row}': 'OTHERS',
-            f'AD{start_row}': 'EMPTIES'
+            f'U{start_row}': 'JUMBO',
+            f'V{start_row}': 'BOXN',
+            f'W{start_row}': 'BTPN',
+            f'X{start_row}': 'BTPG',
+            f'Y{start_row}': 'CONT',
+            f'Z{start_row}': 'SHRA',
+            f'AA{start_row}': 'OTHERS',
+            f'AB{start_row}': 'EMPTIES'
         }
         
         for cell, title in takenover_row4.items():
@@ -189,10 +185,10 @@ class ReportFormatter:
         """Set column widths and row heights"""
         # Column widths
         column_widths = {
-            'A': 12, 'B': 12, 'C': 10, 'D': 8, 'E': 8, 'F': 8, 'G': 8,
-            'H': 10, 'I': 8, 'J': 8, 'K': 8, 'L': 8, 'M': 8, 'N': 10, 'O': 10,
-            'P': 12, 'Q': 12, 'R': 10, 'S': 8, 'T': 10, 'U': 8, 'V': 8,
-            'W': 10, 'X': 8, 'Y': 8, 'Z': 8, 'AA': 8, 'AB': 8, 'AC': 10, 'AD': 10
+            'A': 12, 'B': 12, 'C': 8, 'D': 8, 'E': 8, 'F': 8,
+            'G': 10, 'H': 8, 'I': 8, 'J': 8, 'K': 8, 'L': 8, 'M': 10, 'N': 10,
+            'O': 12, 'P': 12, 'Q': 8, 'R': 10, 'S': 8, 'T': 8,
+            'U': 10, 'V': 8, 'W': 8, 'X': 8, 'Y': 8, 'Z': 8, 'AA': 10, 'AB': 10
         }
         
         for col, width in column_widths.items():
@@ -206,9 +202,9 @@ class ReportFormatter:
     
     def _apply_header_borders(self, ws):
         """Apply borders to all header cells"""
-        # Apply borders to all cells from A1 to AD4
+        # Apply borders to all cells from A1 to AB4
         for row in range(1, 5):
-            for col in range(1, 31):  # A to AD is 30 columns
+            for col in range(1, 29):  # A to AB is 28 columns
                 cell = ws.cell(row=row, column=col)
                 cell.border = self.thin_border
                 # Ensure all cells have white fill
@@ -221,13 +217,13 @@ class ReportFormatter:
         ws[f'A{start_row}'].font = self.section_header_font
         ws[f'A{start_row}'].alignment = self.center_align
         ws[f'A{start_row}'].fill = self.white_fill
-        ws.merge_cells(f'A{start_row}:O{start_row}')
+        ws.merge_cells(f'A{start_row}:N{start_row}')
         
-        ws[f'P{start_row}'] = "TAKENOVER"
-        ws[f'P{start_row}'].font = self.section_header_font
-        ws[f'P{start_row}'].alignment = self.center_align
-        ws[f'P{start_row}'].fill = self.white_fill
-        ws.merge_cells(f'P{start_row}:AD{start_row}')
+        ws[f'O{start_row}'] = "TAKENOVER"
+        ws[f'O{start_row}'].font = self.section_header_font
+        ws[f'O{start_row}'].alignment = self.center_align
+        ws[f'O{start_row}'].fill = self.white_fill
+        ws.merge_cells(f'O{start_row}:AB{start_row}')
         
         # Second and Third rows (start_row + 1 and start_row + 2)
         self._create_row3_headers(ws, start_row=start_row + 1)
@@ -240,7 +236,7 @@ class ReportFormatter:
         
         # Apply borders to these 3 rows
         for row in range(start_row, start_row + 3):
-            for col in range(1, 31):  # A to AD
+            for col in range(1, 29):  # A to AB
                 cell = ws.cell(row=row, column=col)
                 cell.border = self.thin_border
                 cell.fill = self.white_fill
@@ -251,12 +247,12 @@ class ReportFormatter:
         
         thick_side = Side(style='medium')
         
-        # Apply thick border around entire station group
-        self._apply_thick_border_to_range(ws, start_row, end_row, 'A', 'AD')
+        # Apply medium border around entire station group
+        self._apply_thick_border_to_range(ws, start_row, end_row, 'A', 'AB')
         
         # Merge single-value columns for handedover section
         if has_handedover and end_row > start_row:
-            merge_columns = ['A', 'B', 'C', 'D', 'E', 'F', 'G']  # IC STTN through CONT
+            merge_columns = ['A', 'B', 'C', 'D', 'E', 'F']  # IC STTN through CONT
             for col in merge_columns:
                 ws.merge_cells(f'{col}{start_row}:{col}{end_row}')
                 # Center the merged cell content
@@ -265,7 +261,7 @@ class ReportFormatter:
         
         # Merge single-value columns for takenover section  
         if has_takenover and end_row > start_row:
-            merge_columns = ['P', 'Q', 'R', 'S', 'T', 'U', 'V']  # IC STTN through CONT
+            merge_columns = ['O', 'P', 'Q', 'R', 'S', 'T']  # IC STTN through CONT
             for col in merge_columns:
                 ws.merge_cells(f'{col}{start_row}:{col}{end_row}')
                 # Center the merged cell content
@@ -333,9 +329,9 @@ class ReportFormatter:
             ws[f'B{row}'].font = station_trains_font
         
         if has_takenover:
-            # Format takenover IC STTN (column P) and NO OF TRAINS (column Q)
+            # Format takenover IC STTN (column O) and NO OF TRAINS (column P)
+            ws[f'O{row}'].font = station_trains_font
             ws[f'P{row}'].font = station_trains_font
-            ws[f'Q{row}'].font = station_trains_font
     
     def create_stock_table(self, ws, start_row, df, ph_stations):
         """Create STOCK table with OB, H/O, T/O, CB columns auto-filled"""

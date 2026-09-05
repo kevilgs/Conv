@@ -135,46 +135,44 @@ class FinalReportGenerator:
             # L+E counts
             details = handed_info['details']
             ws[f'B{current_row}'] = details['NO_OF_TRAINS']
-            ws[f'C{current_row}'] = details['DIESEL']
-            ws[f'D{current_row}'] = details['JUMBO_LE']
-            ws[f'E{current_row}'] = details['BOXN_LE'] 
-            ws[f'F{current_row}'] = details['BTPN_LE'] 
-            ws[f'G{current_row}'] = details['CONT_COUNT']
+            ws[f'C{current_row}'] = details['JUMBO_LE']
+            ws[f'D{current_row}'] = details['BOXN_LE'] 
+            ws[f'E{current_row}'] = details['BTPN_LE'] 
+            ws[f'F{current_row}'] = details['CONT_COUNT']
             
             # Details section - put each station in separate rows vertically
-            self._populate_classification_vertically(ws, current_row, 'H', details['JUMBO'])
-            self._populate_classification_vertically(ws, current_row, 'I', details['BOXN'])
-            self._populate_classification_vertically(ws, current_row, 'J', details['BTPN'])
-            self._populate_classification_vertically(ws, current_row, 'K', details['BTPG'])
-            self._populate_classification_vertically(ws, current_row, 'M', details['SHRA'])
-            self._populate_classification_vertically(ws, current_row, 'L', details['CONT'])
-            self._populate_classification_vertically(ws, current_row, 'N', details['OTHERS'])
-            self._populate_classification_vertically(ws, current_row, 'O', details['EMPTIES'])
+            self._populate_classification_vertically(ws, current_row, 'G', details['JUMBO'])
+            self._populate_classification_vertically(ws, current_row, 'H', details['BOXN'])
+            self._populate_classification_vertically(ws, current_row, 'I', details['BTPN'])
+            self._populate_classification_vertically(ws, current_row, 'J', details['BTPG'])
+            self._populate_classification_vertically(ws, current_row, 'L', details['SHRA'])
+            self._populate_classification_vertically(ws, current_row, 'K', details['CONT'])
+            self._populate_classification_vertically(ws, current_row, 'M', details['OTHERS'])
+            self._populate_classification_vertically(ws, current_row, 'N', details['EMPTIES'])
             
             # Populate TAKENOVER section data
             taken_info = takenover_data.get(station, {'ic_sttn': station, 'details': dummy_details})
             
             # Main station info in first row
-            ws[f'P{current_row}'] = taken_info['ic_sttn']
+            ws[f'O{current_row}'] = taken_info['ic_sttn']
 
             # L+E counts
             details = taken_info['details']
-            ws[f'Q{current_row}'] = details['NO_OF_TRAINS']
-            ws[f'R{current_row}'] = details['DIESEL']
-            ws[f'S{current_row}'] = details['JUMBO_LE']
-            ws[f'T{current_row}'] = details.get('BOXN_PH_OTH', '0+0')
-            ws[f'U{current_row}'] = details['BTPN_LE']
-            ws[f'V{current_row}'] = details['CONT_COUNT'] 
+            ws[f'P{current_row}'] = details['NO_OF_TRAINS']
+            ws[f'Q{current_row}'] = details['JUMBO_LE']
+            ws[f'R{current_row}'] = details.get('BOXN_PH_OTH', '0+0')
+            ws[f'S{current_row}'] = details['BTPN_LE']
+            ws[f'T{current_row}'] = details['CONT_COUNT'] 
             
             # Details section - put each station in separate rows vertically
-            self._populate_classification_vertically(ws, current_row, 'W', details['JUMBO'])
-            self._populate_classification_vertically(ws, current_row, 'X', details['BOXN'])
-            self._populate_classification_vertically(ws, current_row, 'Y', details['BTPN'])
-            self._populate_classification_vertically(ws, current_row, 'Z', details['BTPG'])
-            self._populate_classification_vertically(ws, current_row, 'AB', details['SHRA'])
-            self._populate_classification_vertically(ws, current_row, 'AA', details['CONT'])
-            self._populate_classification_vertically(ws, current_row, 'AC', details['OTHERS'])
-            self._populate_classification_vertically(ws, current_row, 'AD', details['EMPTIES'])
+            self._populate_classification_vertically(ws, current_row, 'U', details['JUMBO'])
+            self._populate_classification_vertically(ws, current_row, 'V', details['BOXN'])
+            self._populate_classification_vertically(ws, current_row, 'W', details['BTPN'])
+            self._populate_classification_vertically(ws, current_row, 'X', details['BTPG'])
+            self._populate_classification_vertically(ws, current_row, 'Z', details['SHRA'])
+            self._populate_classification_vertically(ws, current_row, 'Y', details['CONT'])
+            self._populate_classification_vertically(ws, current_row, 'AA', details['OTHERS'])
+            self._populate_classification_vertically(ws, current_row, 'AB', details['EMPTIES'])
             
             # Apply formatting to all rows used by this station group
             station_start_row = current_row
@@ -214,8 +212,8 @@ class FinalReportGenerator:
 
     def _format_data_row(self, ws, row_num):
         """Apply formatting to a data row"""
-        for col in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O',
-                   'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'AA', 'AB', 'AC', 'AD']:
+        for col in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
+                   'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'AA', 'AB']:
             cell = ws[f'{col}{row_num}']
             cell.font = self.formatter.normal_font
             cell.alignment = self.formatter.center_align
@@ -227,28 +225,26 @@ class FinalReportGenerator:
         # HANDEDOVER totals
         ws[f'A{current_row}'] = label
         ws[f'B{current_row}'] = f"{totals_handed['NO_OF_TRAINS'][0]}/{totals_handed['NO_OF_TRAINS'][1]}"
-        ws[f'C{current_row}'] = totals_handed['DIESEL']
-        ws[f'D{current_row}'] = f"{totals_handed['JUMBO_LE'][0]}+{totals_handed['JUMBO_LE'][1]}"
-        ws[f'E{current_row}'] = f"{totals_handed['BOXN_LE'][0]}+{totals_handed['BOXN_LE'][1]}"
-        ws[f'F{current_row}'] = f"{totals_handed['BTPN_LE'][0]}+{totals_handed['BTPN_LE'][1]}"
-        ws[f'G{current_row}'] = totals_handed['CONT']
+        ws[f'C{current_row}'] = f"{totals_handed['JUMBO_LE'][0]}+{totals_handed['JUMBO_LE'][1]}"
+        ws[f'D{current_row}'] = f"{totals_handed['BOXN_LE'][0]}+{totals_handed['BOXN_LE'][1]}"
+        ws[f'E{current_row}'] = f"{totals_handed['BTPN_LE'][0]}+{totals_handed['BTPN_LE'][1]}"
+        ws[f'F{current_row}'] = totals_handed['CONT']
         
         # TAKENOVER totals
-        ws[f'P{current_row}'] = label
-        ws[f'Q{current_row}'] = f"{totals_taken['NO_OF_TRAINS'][0]}/{totals_taken['NO_OF_TRAINS'][1]}"
-        ws[f'R{current_row}'] = totals_taken['DIESEL']
-        ws[f'S{current_row}'] = f"{totals_taken['JUMBO_LE'][0]}+{totals_taken['JUMBO_LE'][1]}"
-        ws[f'T{current_row}'] = f"{totals_taken['BOXN_PH_OTH'][0]}+{totals_taken['BOXN_PH_OTH'][1]}"
-        ws[f'U{current_row}'] = f"{totals_taken['BTPN_LE'][0]}+{totals_taken['BTPN_LE'][1]}"
-        ws[f'V{current_row}'] = totals_taken['CONT']
+        ws[f'O{current_row}'] = label
+        ws[f'P{current_row}'] = f"{totals_taken['NO_OF_TRAINS'][0]}/{totals_taken['NO_OF_TRAINS'][1]}"
+        ws[f'Q{current_row}'] = f"{totals_taken['JUMBO_LE'][0]}+{totals_taken['JUMBO_LE'][1]}"
+        ws[f'R{current_row}'] = f"{totals_taken['BOXN_PH_OTH'][0]}+{totals_taken['BOXN_PH_OTH'][1]}"
+        ws[f'S{current_row}'] = f"{totals_taken['BTPN_LE'][0]}+{totals_taken['BTPN_LE'][1]}"
+        ws[f'T{current_row}'] = totals_taken['CONT']
         
         # Apply bold formatting and borders to ALL cells in the row
         from openpyxl.styles import Font
         bold_font = Font(name='Segoe UI', size=16, bold=True)
         
-        # Format all columns A through AD
-        for col in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O',
-                   'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'AA', 'AB', 'AC', 'AD']:
+        # Format all columns A through AB
+        for col in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
+                   'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'AA', 'AB']:
             cell = ws[f'{col}{current_row}']
             cell.font = bold_font
             cell.alignment = self.formatter.center_align
@@ -258,7 +254,7 @@ class FinalReportGenerator:
         self.formatter.format_station_and_trains_cells(ws, current_row, True, True)  # Add this line
         
         # Apply thick border around the entire total row
-        self.formatter.apply_thick_border_to_row(ws, current_row, 'A', 'AD')
+        self.formatter.apply_thick_border_to_row(ws, current_row, 'A', 'AB')
     
     def _get_intermediate_file_path(self, original_filename):
         """Get the path to the intermediate XLSX file"""
