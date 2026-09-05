@@ -22,15 +22,15 @@ class ReportFormatter:
         
         # Borders
         self.thick_border = Border(
-            left=Side(style='thick'), right=Side(style='thick'),
-            top=Side(style='thick'), bottom=Side(style='thick')
+            left=Side(style='medium'), right=Side(style='medium'),
+            top=Side(style='medium'), bottom=Side(style='medium')
         )
         self.thin_border = Border(
-            left=Side(style='thick'), right=Side(style='thick'),
-            top=Side(style='thick'), bottom=Side(style='thick')
+            left=Side(style='medium'), right=Side(style='medium'),
+            top=Side(style='medium'), bottom=Side(style='medium')
         )
         self.details_border = Border(
-            left=Side(style='thick'), right=Side(style='thick')
+            left=Side(style='medium'), right=Side(style='medium')
         )
     
     def create_report_structure(self, ws, report_date=None):
@@ -246,10 +246,10 @@ class ReportFormatter:
                 cell.fill = self.white_fill
     
     def apply_station_group_formatting(self, ws, start_row, end_row, has_handedover=True, has_takenover=True):
-        """Apply thick border around station group and merge single-value columns"""
+        """Apply medium border around station group and merge single-value columns"""
         from openpyxl.styles import Border, Side
         
-        thick_side = Side(style='thick')
+        thick_side = Side(style='medium')
         
         # Apply thick border around entire station group
         self._apply_thick_border_to_range(ws, start_row, end_row, 'A', 'AD')
@@ -273,11 +273,11 @@ class ReportFormatter:
                 merged_cell.alignment = self.center_align
 
     def _apply_thick_border_to_range(self, ws, start_row, end_row, start_col, end_col):
-        """Apply thick border around a range of cells"""
+        """Apply medium border around a range of cells"""
         from openpyxl.styles import Border, Side
         from openpyxl.utils import column_index_from_string
         
-        thick_side = Side(style='thick')
+        thick_side = Side(style='medium')
         
         start_col_idx = column_index_from_string(start_col)
         end_col_idx = column_index_from_string(end_col)
@@ -300,11 +300,11 @@ class ReportFormatter:
                 )
     
     def apply_thick_border_to_row(self, ws, row, start_col, end_col):
-        """Apply thick border around an entire row"""
+        """Apply medium border around an entire row"""
         from openpyxl.styles import Border, Side
         from openpyxl.utils import column_index_from_string
         
-        thick_side = Side(style='thick')
+        thick_side = Side(style='medium')
         
         start_col_idx = column_index_from_string(start_col)
         end_col_idx = column_index_from_string(end_col)
@@ -423,9 +423,12 @@ class ReportFormatter:
         # Bold fonts
         bold_font = Font(name='Segoe UI', size=16, bold=True)
         normal_font = Font(name='Segoe UI', size=16)
+        bold_inline = InlineFont(b=True, sz=16, rFont='Segoe UI')
+        normal_inline = InlineFont(b=False, sz=16, rFont='Segoe UI')
+        
         center_align = Alignment(horizontal='center', vertical='center')
         left_align = Alignment(horizontal='left', vertical='center')
-        thin_border = Border(left=Side(style='thick'), right=Side(style='thick'), top=Side(style='thick'), bottom=Side(style='thick'))
+        thin_border = Border(left=Side(style='medium'), right=Side(style='medium'), top=Side(style='medium'), bottom=Side(style='medium'))
         
         bold_inline = InlineFont(b=True, sz=16, rFont='Segoe UI')
         normal_inline = InlineFont(b=False, sz=16, rFont='Segoe UI')

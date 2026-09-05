@@ -130,50 +130,23 @@ class ReportDataProcessor:
             if classification not in ['JUMBO', 'BOX', 'BOXN', 'BTPN', 'BTPG', 'CONT', 'SHRA']:
                 others_classifications.append(classification)
 
-        # 1. Handle special combined group ['BCACBM', 'NMG', 'ACT1', 'ACT2']
-        special_group = ['BCACBM', 'NMG', 'ACT1', 'ACT2']
-        special_lines = []
-        special_sttn_counts = Counter()
-        
-        for classification in special_group:
-            if classification in others_classifications:
-                filtered_data = station_data[
-                    (station_data['HANDEDOVER CLASSIFICATION'] == classification) &
-                    (station_data['HANDED OVER L/E'] == 'L')
-                ]
-                if not filtered_data.empty:
-                    sttn_to_values = filtered_data['HANDED OVER STTN TO'].tolist()
-                    total_count = len(sttn_to_values)
-                    
-                    if total_count == 1:
-                        special_lines.append(f"{classification}")
-                    elif total_count > 1:
-                        special_lines.append(f"{classification} - {total_count}")
-                        
-                    special_sttn_counts.update(sttn_to_values)
-                    
-        # Add the combined destinations to special_lines
-        for sttn, count in special_sttn_counts.items():
-            if count == 1:
-                special_lines.append(f"{sttn}")
-            else:
-                special_lines.append(f"{sttn} - {count}")
-                
-        if special_lines:
-            details['OTHERS'].append("\n".join(special_lines))
-
-        # 2. Handle the rest of the others
         for classification in others_classifications:
-            if classification not in special_group:
-                filtered_data = station_data[
-                    (station_data['HANDEDOVER CLASSIFICATION'] == classification) &
-                    (station_data['HANDED OVER L/E'] == 'L')
-                ]
+            filtered_data = station_data[
+                (station_data['HANDEDOVER CLASSIFICATION'] == classification) &
+                (station_data['HANDED OVER L/E'] == 'L')
+            ]
+            
+            if not filtered_data.empty:
+                sttn_to_values = filtered_data['HANDED OVER STTN TO'].tolist()
+                sttn_counts = Counter(sttn_to_values)
                 
-                if not filtered_data.empty:
-                    sttn_to_values = filtered_data['HANDED OVER STTN TO'].tolist()
-                    sttn_counts = Counter(sttn_to_values)
-                    
+                if classification in ['BCACBM', 'NMG', 'ACT1', 'ACT2']:
+                    total_count = sum(sttn_counts.values())
+                    lines = [f"{classification}" if total_count == 1 else f"{classification} - {total_count}"]
+                    for sttn, count in sttn_counts.items():
+                        lines.append(f"[{sttn}]" if count == 1 else f"[{sttn}] - {count}")
+                    details['OTHERS'].append("\n".join(lines))
+                else:
                     for sttn, count in sttn_counts.items():
                         if count == 1:
                             details['OTHERS'].append(f"{classification}[{sttn}]")
@@ -287,50 +260,23 @@ class ReportDataProcessor:
             if classification not in ['JUMBO', 'BOX', 'BOXN', 'BTPN', 'BTPG', 'CONT', 'SHRA']:
                 others_classifications.append(classification)
 
-        # 1. Handle special combined group ['BCACBM', 'NMG', 'ACT1', 'ACT2']
-        special_group = ['BCACBM', 'NMG', 'ACT1', 'ACT2']
-        special_lines = []
-        special_sttn_counts = Counter()
-        
-        for classification in special_group:
-            if classification in others_classifications:
-                filtered_data = station_data[
-                    (station_data['TAKENOVER CLASSIFICATION'] == classification) &
-                    (station_data['TAKEN OVER L/E'] == 'L')
-                ]
-                if not filtered_data.empty:
-                    sttn_to_values = filtered_data['TAKEN OVER STTN TO'].tolist()
-                    total_count = len(sttn_to_values)
-                    
-                    if total_count == 1:
-                        special_lines.append(f"{classification}")
-                    elif total_count > 1:
-                        special_lines.append(f"{classification} - {total_count}")
-                        
-                    special_sttn_counts.update(sttn_to_values)
-                    
-        # Add the combined destinations to special_lines
-        for sttn, count in special_sttn_counts.items():
-            if count == 1:
-                special_lines.append(f"{sttn}")
-            else:
-                special_lines.append(f"{sttn} - {count}")
-                
-        if special_lines:
-            details['OTHERS'].append("\n".join(special_lines))
-
-        # 2. Handle the rest of the others
         for classification in others_classifications:
-            if classification not in special_group:
-                filtered_data = station_data[
-                    (station_data['TAKENOVER CLASSIFICATION'] == classification) &
-                    (station_data['TAKEN OVER L/E'] == 'L')
-                ]
+            filtered_data = station_data[
+                (station_data['TAKENOVER CLASSIFICATION'] == classification) &
+                (station_data['TAKEN OVER L/E'] == 'L')
+            ]
+            
+            if not filtered_data.empty:
+                sttn_to_values = filtered_data['TAKEN OVER STTN TO'].tolist()
+                sttn_counts = Counter(sttn_to_values)
                 
-                if not filtered_data.empty:
-                    sttn_to_values = filtered_data['TAKEN OVER STTN TO'].tolist()
-                    sttn_counts = Counter(sttn_to_values)
-                    
+                if classification in ['BCACBM', 'NMG', 'ACT1', 'ACT2']:
+                    total_count = sum(sttn_counts.values())
+                    lines = [f"{classification}" if total_count == 1 else f"{classification} - {total_count}"]
+                    for sttn, count in sttn_counts.items():
+                        lines.append(f"[{sttn}]" if count == 1 else f"[{sttn}] - {count}")
+                    details['OTHERS'].append("\n".join(lines))
+                else:
                     for sttn, count in sttn_counts.items():
                         if count == 1:
                             details['OTHERS'].append(f"{classification}[{sttn}]")
